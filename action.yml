@@ -1,12 +1,16 @@
 name: 'Linear'
 description: 'Integration with Linear app'
 inputs:
-  your-name:  # id of input
+  your_name:
     description: 'Your name'
     required: true
     default: 'First Last'
+  linear_access_token:
+    description: 'developers.linear.app api access token'
+    required: true
+    default: ''
 outputs:
-  time: # id of output
+  time:
     description: 'Name output'
 runs:
   using: 'node12'

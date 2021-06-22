@@ -3,15 +3,16 @@ on: [push]
 jobs:
   hello_world_job:
     runs-on: ubuntu-latest
-    name: A job to say hello
+    name: Create tags in linear.app
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Hello world action step
+      - name: Print commit messages
         id: hello
         uses: ./
         with:
-          your-name: 'Theepan K'
+          your_name: 'Theepan K'
+          linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
       # Use the output from the `hello` step
       - name: Get the output time
         run: echo "The time was ${{ steps.hello.outputs.time }}"
