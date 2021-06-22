@@ -1,17 +1,24 @@
 name: 'Linear'
 description: 'Integration with Linear app'
 inputs:
-  your_name:
-    description: 'Your name'
-    required: true
-    default: 'First Last'
   linear_access_token:
     description: 'developers.linear.app api access token'
     required: true
     default: ''
+<<<<<<< HEAD
+  GITHUB_TOKEN:
+    description: 'Github api token'
+    required: true
+    default: ''
+=======
+  labels:
+    description: 'List of branch-label associations'
+    required: true
+    default: >-
+>>>>>>> 71129cd (typescript version)
 outputs:
   time:
     description: 'Name output'
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: '.dist/index.js'
