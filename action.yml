@@ -1,0 +1,13 @@
+name: 'Linear'
+description: 'Integration with Linear app'
+inputs:
+  your-name:  # id of input
+    description: 'Your name'
+    required: true
+    default: 'First Last'
+outputs:
+  time: # id of output
+    description: 'Name output'
+runs:
+  using: 'node12'
+  main: 'index.js'
