@@ -6289,8 +6289,11 @@ try {
   const {payload} = github.context;
   const payloadStr = JSON.stringify(github.context.payload, undefined, 2)
 
+  console.log('event is ', github.context.eventName);
   if(github.context.eventName === 'push') {
     payload.commits.forEach(commit => console.log(commit.message));
+  } else if(github.context.eventName === 'pull_request') {
+    console.log('pull request');
   }
   console.log(`The event payload: ${payloadStr}`);
   
