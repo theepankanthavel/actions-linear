@@ -6308,7 +6308,7 @@ try {
         payload.commits.forEach(function (commit) {
             parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
         });
-        console.log('issueIds', JSON.stringify(issueIds_1));
+        console.log('issueIds', JSON.stringify(Array.from(issueIds_1)));
     }
 }
 catch (err) {

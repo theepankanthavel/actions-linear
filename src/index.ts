@@ -31,7 +31,7 @@ try {
     payload.commits.forEach((commit: any) => {
       parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId));
     });
-    console.log('issueIds', JSON.stringify(issueIds));
+    console.log('issueIds', JSON.stringify(Array.from(issueIds)));
   }
 } catch (err) {
   core.setFailed(err);
