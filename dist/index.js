@@ -6270,7 +6270,7 @@ function insertLabelToIssue(issueId, labelInput) {
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var payload, payloadStr, issueIds_1, parts_1, labelConf_1, tasks;
+        var payload, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -6292,9 +6292,10 @@ function main() {
                             name: "deployed-in-" + labelConf_1.branch
                         });
                     });
-                    return [4 /*yield*/, Promise.all(tasks)];
+                    return [4 /*yield*/, Promise.allSettled(tasks)];
                 case 1:
-                    _a.sent();
+                    result = _a.sent();
+                    console.log(result);
                     _a.label = 2;
                 case 2: return [2 /*return*/];
             }
