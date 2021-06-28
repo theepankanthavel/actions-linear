@@ -6207,13 +6207,17 @@ catch (err) {
 }
 try {
     labelConfigs = JSON.parse(core.getInput('labels'));
-    console.log(labelConfigs[0].branch);
 }
 catch (err) {
     core.setFailed('Unable to get label configs ' + err);
     process.exit();
 }
 var linear = new sdk_1.LinearClient({ apiKey: accessToken });
+/**
+ * Helper function to parse commit message and return issue ids
+ * @param commitMessage
+ * @return string[]
+ */
 function parseIssueIds(commitMessage) {
     var pattern = /^ref:\s(.+)$/gmi;
     var matches = pattern.exec(commitMessage);
@@ -6221,26 +6225,34 @@ function parseIssueIds(commitMessage) {
         return [];
     return matches[1].split(',').map(function (v) { return v.trim(); });
 }
+/**
+ * Assign label to passed issue
+ * @param issueId
+ * @param labelInput
+ * @return Promise<void>
+ */
 function insertLabelToIssue(issueId, labelInput) {
     return __awaiter(this, void 0, void 0, function () {
-        var issue, _a, team, labels, _b, _c, _d;
+        var issue, _a, team, existingLabels, _b, _c, _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0: return [4 /*yield*/, linear.issue(issueId)];
                 case 1:
                     issue = _e.sent();
+                    if (!(issue === null || issue === void 0 ? void 0 : issue.id))
+                        return [2 /*return*/];
                     _c = (_b = Promise).all;
-                    _d = [issue === null || issue === void 0 ? void 0 : issue.team];
-                    return [4 /*yield*/, (issue === null || issue === void 0 ? void 0 : issue.labels())];
+                    _d = [issue.team];
+                    return [4 /*yield*/, issue.labels()];
                 case 2: return [4 /*yield*/, _c.apply(_b, [_d.concat([(_e.sent()).nodes])])];
                 case 3:
-                    _a = _e.sent(), team = _a[0], labels = _a[1];
-                    if (!team || !(team === null || team === void 0 ? void 0 : team.id))
+                    _a = _e.sent(), team = _a[0], existingLabels = _a[1];
+                    if (!(team === null || team === void 0 ? void 0 : team.id))
                         return [2 /*return*/];
                     return [4 /*yield*/, linear.issueLabelCreate({ id: labelInput.id, name: labelInput.name, teamId: team.id })];
                 case 4:
                     _e.sent();
-                    return [4 /*yield*/, issue.update({ labelIds: labels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(labelInput.id) })];
+                    return [4 /*yield*/, issue.update({ labelIds: existingLabels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(labelInput.id) })];
                 case 5:
                     _e.sent();
                     console.log("label " + labelInput.name + " added to " + issueId);
@@ -6249,6 +6261,10 @@ function insertLabelToIssue(issueId, labelInput) {
         });
     });
 }
+/**
+ * Main function to run the github action
+ * @return Promise<void>
+ */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var payload, payloadStr, issueIds_1, parts_1, labelConf_1, tasks;
@@ -6261,15 +6277,12 @@ function main() {
                     if (!(github.context.eventName === 'push')) return [3 /*break*/, 2];
                     issueIds_1 = new Set();
                     parts_1 = payload.ref.split("refs/heads/");
-                    console.log('parts', parts_1);
                     labelConf_1 = labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
-                    if (!labelConf_1) {
+                    if (!labelConf_1)
                         return [2 /*return*/];
-                    }
                     payload.commits.forEach(function (commit) {
-                        parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
+                        return parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
                     });
-                    console.log('issueIds', JSON.stringify(Array.from(issueIds_1)));
                     tasks = Array.from(issueIds_1).map(function (issueId) {
                         return insertLabelToIssue(issueId, {
                             id: labelConf_1.id,

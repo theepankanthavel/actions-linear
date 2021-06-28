@@ -15,8 +15,6 @@ try {
 
 try {
   labelConfigs = JSON.parse(core.getInput('labels'));
-  console.log(labelConfigs[0].branch);
-
 } catch(err) {
   core.setFailed('Unable to get label configs ' + err);
   process.exit();
@@ -24,6 +22,11 @@ try {
 
 const linear = new LinearClient({apiKey: accessToken});
 
+/**
+ * Helper function to parse commit message and return issue ids
+ * @param commitMessage
+ * @return string[]
+ */
 function parseIssueIds(commitMessage: string): string[] {
   const pattern = /^ref:\s(.+)$/gmi;
   const matches = pattern.exec(commitMessage);
@@ -31,40 +34,47 @@ function parseIssueIds(commitMessage: string): string[] {
   return matches[1].split(',').map(v => v.trim());
 }
 
+/**
+ * Assign label to passed issue
+ * @param issueId
+ * @param labelInput
+ * @return Promise<void>
+ */
 async function insertLabelToIssue(issueId: string, labelInput: {id: string, name: string}): Promise<void> {
   const issue = await linear.issue(issueId);
-  const [team, labels] = await Promise.all([issue?.team, (await issue?.labels()).nodes]);
+  if(!issue?.id) return;
 
-  if(!team || !team?.id) return;
+  const [team, existingLabels] = await Promise.all([issue.team, (await issue.labels()).nodes]);
+  if(!team?.id) return;
 
   await linear.issueLabelCreate({id: labelInput.id, name: labelInput.name, teamId: team.id});
-  await issue.update({ labelIds: labels.map(l => l?.id).concat(labelInput.id) });
+  await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(labelInput.id) });
 
   console.log(`label ${labelInput.name} added to ${issueId}`);
 }
 
-async function main() {
+/**
+ * Main function to run the github action
+ * @return Promise<void>
+ */
+async function main(): Promise<void> {
   const {payload}: { payload: WebhookPayload } = github.context;
   const payloadStr = JSON.stringify(payload, undefined, 2);
   console.log('payload', payloadStr);
   if (github.context.eventName === 'push') {
     const issueIds = new Set();
     const parts = payload.ref.split("refs/heads/");
-    console.log('parts', parts);
     const labelConf = labelConfigs.find(conf => conf.branch === parts?.[1]);
-    if(!labelConf) {
-      return;
-    }
-    payload.commits.forEach((commit: any) => {
-      parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId));
-    });
-    console.log('issueIds', JSON.stringify(Array.from(issueIds)));
-    const tasks: Promise<void>[] = Array.from(issueIds).map((issueId: string) => {
-      return insertLabelToIssue(issueId, {
+    if(!labelConf) return;
+    payload.commits.forEach((commit: any) =>
+      parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId))
+    );
+    const tasks: Promise<void>[] = Array.from(issueIds).map((issueId: string) =>
+      insertLabelToIssue(issueId, {
         id: labelConf.id,
         name: `deployed-in-${labelConf.branch}`
-      });
-    });
+      })
+    );
     await Promise.all(tasks);
   }
 }
