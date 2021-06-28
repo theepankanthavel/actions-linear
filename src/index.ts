@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import * as LinearClient from '@linear/sdk';
+import {LinearClient} from '@linear/sdk';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 
 let accessToken: string = null;
@@ -22,20 +22,7 @@ try {
   process.exit();
 }
 
-try {
-  const {payload}: {payload: WebhookPayload} = github.context;
-  const payloadStr = JSON.stringify(payload, undefined, 2);
-  console.log('payload', payloadStr);
-  if(github.context.eventName === 'push') {
-    const issueIds = new Set();
-    payload.commits.forEach((commit: any) => {
-      parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId));
-    });
-    console.log('issueIds', JSON.stringify(Array.from(issueIds)));
-  }
-} catch (err) {
-  core.setFailed(err);
-}
+const linear = new LinearClient({apiKey: accessToken});
 
 function parseIssueIds(commitMessage: string): string[] {
   const pattern = /^ref:\s(.+)$/gmi;
@@ -43,3 +30,43 @@ function parseIssueIds(commitMessage: string): string[] {
   if(!matches) return [];
   return matches[1].split(',').map(v => v.trim());
 }
+
+async function insertLabelToIssue(issueId: string, labelInput: {id: string, name: string}): Promise<void> {
+  const issue = await linear.issue(issueId);
+  const [team, labels] = await Promise.all([issue?.team, (await issue?.labels()).nodes]);
+
+  if(!team || !team?.id) return;
+
+  await linear.issueLabelCreate({id: labelInput.id, name: labelInput.name, teamId: team.id});
+  await issue.update({ labelIds: labels.map(l => l?.id).concat(labelInput.id) });
+
+  console.log(`label ${labelInput.name} added to ${issueId}`);
+}
+
+async function main() {
+  const {payload}: { payload: WebhookPayload } = github.context;
+  const payloadStr = JSON.stringify(payload, undefined, 2);
+  console.log('payload', payloadStr);
+  if (github.context.eventName === 'push') {
+    const issueIds = new Set();
+    const parts = payload.ref.split("refs/heads/");
+    console.log('parts', parts);
+    const labelConf = labelConfigs.find(conf => conf.branch === parts?.[1]);
+    if(!labelConf) {
+      return;
+    }
+    payload.commits.forEach((commit: any) => {
+      parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId));
+    });
+    console.log('issueIds', JSON.stringify(Array.from(issueIds)));
+    const tasks: Promise<void>[] = Array.from(issueIds).map((issueId: string) => {
+      return insertLabelToIssue(issueId, {
+        id: labelConf.id,
+        name: `deployed-in-${labelConf.branch}`
+      });
+    });
+    await Promise.all(tasks);
+  }
+}
+
+main().catch(err => core.setFailed(err));
