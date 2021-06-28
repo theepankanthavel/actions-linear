@@ -9,13 +9,22 @@ let packageJsonFiles: {package: string, path: string}[] = [];
 
 try {
   accessToken = core.getInput('linear_access_token');
+} catch(err) {
+  core.setFailed('Unable to get linear app access token');
+  process.exit();
+}
+try {
   labelConfigs = JSON.parse(core.getInput('labels'));
-  packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
+} catch(err) {
+  core.setFailed('Unable to parse labels');
+  process.exit();
+}
+try {
   console.log(core.getInput('package_json_path'));
-
+  packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
   console.log(packageJsonFiles[0].package);
 } catch(err) {
-  core.setFailed('Invalid inputs ' + err);
+  core.setFailed(err.message);
   process.exit();
 }
 
