@@ -4,14 +4,14 @@ on:
       - develop
 
 jobs:
-  hello_world_job:
+  insert_issue_labels:
     runs-on: ubuntu-latest
-    name: Create tags in linear.app
+    name: Add labels to issues in Linear
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Print commit messages
-        id: hello
+      - name: Add labels to issues in Linear
+        id: labels
         uses: ./
         with:
           linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
