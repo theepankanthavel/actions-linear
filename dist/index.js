@@ -6219,11 +6219,14 @@ var linear = new sdk_1.LinearClient({ apiKey: accessToken });
  * @return string[]
  */
 function parseIssueIds(commitMessage) {
-    var pattern = /^ref:\s(.+)$/gmi;
+    var pattern = /^ref:\s?(.+)$/gmi;
     var matches = pattern.exec(commitMessage);
     if (!matches)
         return [];
-    return matches[1].split(',').map(function (v) { return v.trim(); });
+    var ids = matches[1].split(',').map(function (v) { return v.trim(); });
+    if (ids.includes('NO_ACTION'))
+        return [];
+    return ids;
 }
 /**
  * Assign label to passed issue

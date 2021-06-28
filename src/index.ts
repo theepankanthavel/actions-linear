@@ -28,10 +28,12 @@ const linear = new LinearClient({apiKey: accessToken});
  * @return string[]
  */
 function parseIssueIds(commitMessage: string): string[] {
-  const pattern = /^ref:\s(.+)$/gmi;
+  const pattern = /^ref:\s?(.+)$/gmi;
   const matches = pattern.exec(commitMessage);
   if(!matches) return [];
-  return matches[1].split(',').map(v => v.trim());
+  const ids = matches[1].split(',').map(v => v.trim());
+  if(ids.includes('NO_ACTION')) return [];
+  return ids;
 }
 
 /**
