@@ -1328,41 +1328,6 @@ function u(e,i){var n={};for(var a in e)Object.prototype.hasOwnProperty.call(e,a
 
 /***/ }),
 
-/***/ 20:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-var authToken = __nccwpck_require__(334);
-
-const createActionAuth = function createActionAuth() {
-  if (!process.env.GITHUB_ACTION) {
-    throw new Error("[@octokit/auth-action] `GITHUB_ACTION` environment variable is not set. @octokit/auth-action is meant to be used in GitHub Actions only.");
-  }
-
-  const definitions = [process.env.GITHUB_TOKEN, process.env.INPUT_GITHUB_TOKEN, process.env.INPUT_TOKEN].filter(Boolean);
-
-  if (definitions.length === 0) {
-    throw new Error("[@octokit/auth-action] `GITHUB_TOKEN` variable is not set. It must be set on either `env:` or `with:`. See https://github.com/octokit/auth-action.js#createactionauth");
-  }
-
-  if (definitions.length > 1) {
-    throw new Error("[@octokit/auth-action] The token variable is specified more than once. Use either `with.token`, `with.GITHUB_TOKEN`, or `env.GITHUB_TOKEN`. See https://github.com/octokit/auth-action.js#createactionauth");
-  }
-
-  const token = definitions.pop();
-  return authToken.createTokenAuth(token);
-};
-
-exports.createActionAuth = createActionAuth;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
 /***/ 334:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -6231,46 +6196,17 @@ exports.__esModule = true;
 var core = __nccwpck_require__(186);
 var github = __nccwpck_require__(438);
 var sdk_1 = __nccwpck_require__(851);
-var auth_action_1 = __nccwpck_require__(20);
 var accessToken = null;
 var labelConfigs = (/* unused pure expression or super */ null && ([]));
-function getGithubApiAuth() {
-    return __awaiter(this, void 0, void 0, function () {
-        var githubToken, auth, authentication, err_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    githubToken = core.getInput('GITHUB_TOKEN');
-                    console.log('github token ', githubToken === null || githubToken === void 0 ? void 0 : githubToken.length);
-                    auth = auth_action_1.createActionAuth();
-                    return [4 /*yield*/, auth()];
-                case 1:
-                    authentication = _a.sent();
-                    console.log(authentication.type, authentication.tokenType);
-                    return [3 /*break*/, 3];
-                case 2:
-                    err_1 = _a.sent();
-                    console.log('err', err_1);
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-getGithubApiAuth();
+var packageJsonFiles = [];
 try {
     accessToken = core.getInput('linear_access_token');
-}
-catch (err) {
-    core.setFailed('Unable to get linear access token');
-    process.exit();
-}
-try {
     labelConfigs = JSON.parse(core.getInput('labels'));
+    packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
+    console.log(packageJsonFiles[0].package);
 }
 catch (err) {
-    core.setFailed('Unable to get label configs ' + err);
+    core.setFailed('Invalid inputs');
     process.exit();
 }
 var linear = new sdk_1.LinearClient({ apiKey: accessToken });

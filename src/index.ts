@@ -1,36 +1,20 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import {LinearClient} from '@linear/sdk';
-import {createActionAuth} from '@octokit/auth-action';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 
 let accessToken: string = null;
 let labelConfigs: {id: string, branch: string, label: string}[] = [];
-
-async function getGithubApiAuth() {
-  try {
-    const githubToken = core.getInput('GITHUB_TOKEN');
-    console.log('github token ', githubToken?.length);
-    const auth = createActionAuth();
-    const authentication = await auth();
-    console.log(authentication.type, authentication.tokenType);
-  } catch(err) {
-    console.log('err', err);
-  }
-}
-getGithubApiAuth();
+let packageJsonFiles: {package: string, path: string}[] = [];
 
 try {
   accessToken = core.getInput('linear_access_token');
-} catch(err) {
-  core.setFailed('Unable to get linear access token');
-  process.exit();
-}
-
-try {
   labelConfigs = JSON.parse(core.getInput('labels'));
+  packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
+
+  console.log(packageJsonFiles[0].package);
 } catch(err) {
-  core.setFailed('Unable to get label configs ' + err);
+  core.setFailed('Invalid inputs');
   process.exit();
 }
 

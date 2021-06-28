@@ -36,5 +36,10 @@ jobs:
               "label": "deployed-in-staging",
               "id": "c141a90c-5a5f-43d5-ab4e-ac7099f03a69"
             }]
+          package_json_path: >-
+            [{
+              "package": "web",
+              "path: "package.json"
+            }]
       - name: Get the output time
         run: echo "The time was ${{ steps.hello.outputs.time }}"
