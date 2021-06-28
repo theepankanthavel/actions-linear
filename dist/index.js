@@ -6316,8 +6316,10 @@ catch (err) {
 }
 function parseIssueIds(commitMessage) {
     var pattern = /^ref:\s(.+)$/gmi;
-    var _a = pattern.exec(commitMessage), refs = _a[1];
-    return refs.split(',').map(function (v) { return v.trim(); });
+    var matches = pattern.exec(commitMessage);
+    if (!matches)
+        return [];
+    return matches[1].split(',').map(function (v) { return v.trim(); });
 }
 //# sourceMappingURL=index.js.map
 })();

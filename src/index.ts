@@ -39,6 +39,7 @@ try {
 
 function parseIssueIds(commitMessage: string): string[] {
   const pattern = /^ref:\s(.+)$/gmi;
-  const [, refs] = pattern.exec(commitMessage);
-  return refs.split(',').map(v => v.trim());
+  const matches = pattern.exec(commitMessage);
+  if(!matches) return [];
+  return matches[1].split(',').map(v => v.trim());
 }
