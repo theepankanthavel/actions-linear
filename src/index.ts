@@ -96,4 +96,4 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => core.setFailed(err));
+// main().catch(err => core.setFailed(err));
