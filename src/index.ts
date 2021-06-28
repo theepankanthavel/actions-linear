@@ -11,10 +11,11 @@ try {
   accessToken = core.getInput('linear_access_token');
   labelConfigs = JSON.parse(core.getInput('labels'));
   packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
+  console.log(core.getInput('package_json_path'));
 
   console.log(packageJsonFiles[0].package);
 } catch(err) {
-  core.setFailed('Invalid inputs');
+  core.setFailed('Invalid inputs ' + err);
   process.exit();
 }
 
