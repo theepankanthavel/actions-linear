@@ -1,16 +1,24 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import {LinearClient} from '@linear/sdk';
+import {createActionAuth} from '@octokit/auth-action';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 
 let accessToken: string = null;
 let labelConfigs: {id: string, branch: string, label: string}[] = [];
-try {
-  const githubToken = core.getInput('GITHUB_TOKEN');
-  console.log('github token ', githubToken?.length);
-} catch(err) {
-  console.log('err', err);
+
+async function getGithubApiAuth() {
+  try {
+    const githubToken = core.getInput('GITHUB_TOKEN');
+    console.log('github token ', githubToken?.length);
+    const auth = createActionAuth();
+    const authentication = await auth();
+    console.log(authentication.type, authentication.tokenType);
+  } catch(err) {
+    console.log('err', err);
+  }
 }
+getGithubApiAuth();
 
 try {
   accessToken = core.getInput('linear_access_token');
