@@ -3565,7 +3565,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var deprecation = __nccwpck_require__(481);
+var deprecation = __nccwpck_require__(932);
 var once = _interopDefault(__nccwpck_require__(223));
 
 const logOnceCode = once(deprecation => console.warn(deprecation));
@@ -3999,7 +3999,7 @@ function removeHook(state, name, method) {
 
 /***/ }),
 
-/***/ 481:
+/***/ 932:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6274,33 +6274,54 @@ module.exports = require("zlib");;
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
-const core = __nccwpck_require__(186);
-const github = __nccwpck_require__(438);
+"use strict";
+var exports = __webpack_exports__;
 
+exports.__esModule = true;
+var core = __nccwpck_require__(186);
+var github = __nccwpck_require__(438);
+var accessToken = null;
+var labelConfigs = [];
 try {
-  const nameToGreet = core.getInput('your_name');
-  const linearAccessToken = core.getInput('linear_access_token');
-  console.log('got access token?', (linearAccessToken || '').length);
-  console.log(`Hello ${nameToGreet}!`);
-  const time = (new Date()).toTimeString();
-  core.setOutput("time", time);
-  const {payload} = github.context;
-  const payloadStr = JSON.stringify(github.context.payload, undefined, 2)
-
-  console.log('event is ', github.context.eventName);
-  if(github.context.eventName === 'push') {
-    payload.commits.forEach(commit => console.log(commit.message));
-  } else if(github.context.eventName === 'pull_request') {
-    console.log('pull request');
-  }
-  console.log(`The event payload: ${payloadStr}`);
-  
-} catch (error) {
-  core.setFailed(error.message);
+    accessToken = core.getInput('linear_access_token');
 }
-
+catch (err) {
+    core.setFailed('Unable to get linear access token');
+    process.exit();
+}
+try {
+    labelConfigs = JSON.parse(core.getInput('labels'));
+    console.log(labelConfigs[0].branch);
+}
+catch (err) {
+    core.setFailed('Unable to get label configs ' + err);
+    process.exit();
+}
+try {
+    var payload = github.context.payload;
+    var payloadStr = JSON.stringify(payload, undefined, 2);
+    console.log('payload', payloadStr);
+    if (github.context.eventName === 'push') {
+        var issueIds_1 = new Set();
+        payload.commits.forEach(function (commit) {
+            parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
+        });
+        console.log('issueIds', JSON.stringify(Array.from(issueIds_1)));
+    }
+}
+catch (err) {
+    core.setFailed(err);
+}
+function parseIssueIds(commitMessage) {
+    var pattern = /^ref:\s(.+)$/gmi;
+    var matches = pattern.exec(commitMessage);
+    if (!matches)
+        return [];
+    return matches[1].split(',').map(function (v) { return v.trim(); });
+}
+//# sourceMappingURL=index.js.map
 })();
 
 module.exports = __webpack_exports__;

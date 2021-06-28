@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: [push]
 
 jobs:
   hello_world_job:
@@ -11,8 +11,24 @@ jobs:
         id: hello
         uses: ./
         with:
-          your_name: 'Theepan K'
           linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
-      # Use the output from the `hello` step
+          labels: >-
+            [{
+              "branch": "develop",
+              "label": "deployed-in-develop",
+              "id": "52d57d00-d529-11eb-b8bc-0242ac130003"
+            }, {
+              "branch": "uat",
+              "label": "deployed-in-uat",
+              "id": "52d57d00-d529-11eb-b8bc-0242ac130003"
+            }, {
+              "branch": "staging",
+              "label": "deployed-in-staging",
+              "id": "b009aa6a-637d-4724-b98f-965d87e2d387"
+            }, {
+              "branch": "staging",
+              "label": "deployed-in-staging",
+              "id": "41f2cc70-e5cc-4a16-ba0d-891ef633d05a"
+            }]
       - name: Get the output time
         run: echo "The time was ${{ steps.hello.outputs.time }}"
