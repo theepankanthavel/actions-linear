@@ -9,6 +9,10 @@ inputs:
     description: 'developers.linear.app api access token'
     required: true
     default: ''
+  labels:
+    description: 'List of branch-label associations'
+    required: true
+    default: >-
 outputs:
   time:
     description: 'Name output'
