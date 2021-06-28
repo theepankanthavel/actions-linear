@@ -77,7 +77,8 @@ async function main(): Promise<void> {
         name: `deployed-in-${labelConf.branch}`
       })
     );
-    await Promise.all(tasks);
+    const result = await Promise.allSettled(tasks);
+    console.log(result);
   }
 }
 
