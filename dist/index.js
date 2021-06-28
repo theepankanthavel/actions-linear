@@ -6199,6 +6199,13 @@ var sdk_1 = __nccwpck_require__(851);
 var accessToken = null;
 var labelConfigs = [];
 try {
+    var githubToken = core.getInput('GITHUB_TOKEN');
+    console.log('github token ', githubToken === null || githubToken === void 0 ? void 0 : githubToken.length);
+}
+catch (err) {
+    console.log('err', err);
+}
+try {
     accessToken = core.getInput('linear_access_token');
 }
 catch (err) {

@@ -1,7 +1,9 @@
-on:
-  push:
-    branches:
-      - develop
+#on:
+#  push:
+#    branches:
+#      - develop
+
+on: [push]
 
 jobs:
   insert_issue_labels:
@@ -15,6 +17,7 @@ jobs:
         uses: ./
         with:
           linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           labels: >-
             [{
               "branch": "develop",

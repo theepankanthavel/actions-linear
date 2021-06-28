@@ -5,6 +5,12 @@ import {WebhookPayload} from "@actions/github/lib/interfaces";
 
 let accessToken: string = null;
 let labelConfigs: {id: string, branch: string, label: string}[] = [];
+try {
+  const githubToken = core.getInput('GITHUB_TOKEN');
+  console.log('github token ', githubToken?.length);
+} catch(err) {
+  console.log('err', err);
+}
 
 try {
   accessToken = core.getInput('linear_access_token');
