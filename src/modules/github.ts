@@ -1,7 +1,18 @@
 const {Octokit} = require('@octokit/rest');
 import config from '../config';
 
-export async function getBranch(owner: string, repo: string, branch: string) {
+export default function git(owner: string, repo: string, branch: string) {
+  return {
+    getBranch() {
+      return getBranch(owner, repo, branch);
+    },
+    getFileContent(filePath: string) {
+      return getFileContent(owner, repo, branch, filePath)
+    }
+  }
+}
+
+async function getBranch(owner: string, repo: string, branch: string) {
   const octokit = new Octokit({
     auth: config.githubToken
   });
@@ -12,10 +23,10 @@ export async function getBranch(owner: string, repo: string, branch: string) {
     branch
   });
 
-  console.log('github branch', payload.data);
+  return payload.data;
 }
 
-export async function getFileContent(owner: string, repo: string, branch: string, filePath: string): Promise<string> {
+async function getFileContent(owner: string, repo: string, branch: string, filePath: string): Promise<string> {
   const octokit = new Octokit({
     auth: config.githubToken
   });
