@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 import {insertLabelToIssue} from "./modules/linear";
+import {getBranch} from "./modules/github";
 import config from "./config";
 
 /**
@@ -24,6 +25,13 @@ function parseIssueIds(commitMessage: string): string[] {
  */
 async function main(): Promise<void> {
   const {payload}: { payload: WebhookPayload } = github.context;
+
+  const {owner, repo} = github.context.repo;
+  console.log('github', owner, repo);
+  await getBranch(owner, repo, 'develop');
+
+
+
   const payloadStr = JSON.stringify(payload, undefined, 2);
   console.log('payload', payloadStr);
   if (github.context.eventName === 'push') {
