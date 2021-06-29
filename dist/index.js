@@ -6313,17 +6313,19 @@ function parseIssueIds(commitMessage) {
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var payload, _a, owner, repo, packageJsonContent, packageJson, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
+        var payload, _a, owner, repo, gitapi, branchData, packageJsonContent, packageJson, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     payload = github.context.payload;
                     _a = github.context.repo, owner = _a.owner, repo = _a.repo;
                     console.log('github', owner, repo);
-                    return [4 /*yield*/, github_1.getBranch(owner, repo, 'develop')];
+                    gitapi = github_1["default"](owner, repo, 'develop');
+                    return [4 /*yield*/, gitapi.getBranch()];
                 case 1:
-                    _b.sent();
-                    return [4 /*yield*/, github_1.getFileContent(owner, repo, 'develop', 'package.json')];
+                    branchData = _b.sent();
+                    console.log('branch data', branchData);
+                    return [4 /*yield*/, gitapi.getFileContent('package.json')];
                 case 2:
                     packageJsonContent = _b.sent();
                     packageJson = JSON.parse(packageJsonContent);
@@ -6402,9 +6404,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.getFileContent = exports.getBranch = void 0;
 var Octokit = __nccwpck_require__(5375)/* .Octokit */ .v;
 var config_1 = __nccwpck_require__(379);
+function git(owner, repo, branch) {
+    return {
+        getBranch: function () {
+            return getBranch(owner, repo, branch);
+        },
+        getFileContent: function (filePath) {
+            return getFileContent(owner, repo, branch, filePath);
+        }
+    };
+}
+exports.default = git;
 function getBranch(owner, repo, branch) {
     return __awaiter(this, void 0, void 0, function () {
         var octokit, payload;
@@ -6421,13 +6433,11 @@ function getBranch(owner, repo, branch) {
                         })];
                 case 1:
                     payload = _a.sent();
-                    console.log('github branch', payload.data);
-                    return [2 /*return*/];
+                    return [2 /*return*/, payload.data];
             }
         });
     });
 }
-exports.getBranch = getBranch;
 function getFileContent(owner, repo, branch, filePath) {
     return __awaiter(this, void 0, void 0, function () {
         var octokit, payload;
@@ -6451,7 +6461,6 @@ function getFileContent(owner, repo, branch, filePath) {
         });
     });
 }
-exports.getFileContent = getFileContent;
 //# sourceMappingURL=github.js.map
 
 /***/ }),
