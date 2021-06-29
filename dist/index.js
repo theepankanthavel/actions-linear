@@ -6152,20 +6152,29 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 379:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 exports.__esModule = true;
-exports.default = {
-    _values: {},
-    setValues: function (values) {
-        this.values = values;
-    },
-    getValues: function () {
-        return this._values;
-    }
+var core = __nccwpck_require__(186);
+var config = {
+    accessToken: '',
+    labelConfigs: [],
+    packageJsonFiles: []
 };
+try {
+    config = {
+        accessToken: core.getInput('linear_access_token'),
+        labelConfigs: JSON.parse(core.getInput('labels')),
+        packageJsonFiles: JSON.parse(core.getInput('package_json_path'))
+    };
+}
+catch (err) {
+    core.setFailed('Invalid inputs ' + err.message);
+    process.exit();
+}
+exports.default = config;
 //# sourceMappingURL=config.js.map
 
 /***/ }),
@@ -6214,21 +6223,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var core = __nccwpck_require__(186);
 var github = __nccwpck_require__(438);
-var config_1 = __nccwpck_require__(379);
 var linear_1 = __nccwpck_require__(895);
-var accessToken = null;
-var labelConfigs = [];
-var packageJsonFiles = [];
-try {
-    accessToken = core.getInput('linear_access_token');
-    labelConfigs = JSON.parse(core.getInput('labels'));
-    packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
-    config_1["default"].setValues({ accessToken: accessToken, labelConfigs: labelConfigs, packageJsonFiles: packageJsonFiles });
-}
-catch (err) {
-    core.setFailed('Invalid inputs ' + err.message);
-    process.exit();
-}
+var config_1 = __nccwpck_require__(379);
 /**
  * Helper function to parse commit message and return issue ids
  * @param commitMessage
@@ -6260,7 +6256,7 @@ function main() {
                     if (!(github.context.eventName === 'push')) return [3 /*break*/, 2];
                     issueIds_1 = new Set();
                     parts_1 = payload.ref.split("refs/heads/");
-                    labelConf_1 = labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
+                    labelConf_1 = config_1["default"].labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
                     if (!labelConf_1)
                         return [2 /*return*/];
                     payload.commits.forEach(function (commit) {
@@ -6344,7 +6340,7 @@ function insertLabelToIssue(issueId, labelInput) {
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    linear = new sdk_1.LinearClient({ apiKey: config_1["default"].getValues().accessToken });
+                    linear = new sdk_1.LinearClient({ apiKey: config_1["default"].accessToken });
                     return [4 /*yield*/, linear.issue(issueId)];
                 case 1:
                     issue = _e.sent();

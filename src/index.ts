@@ -1,22 +1,8 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import config from './config';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 import {insertLabelToIssue} from "./modules/linear";
-
-let accessToken: string = null;
-let labelConfigs: {id: string, branch: string, label: string}[] = [];
-let packageJsonFiles: {package: string, path: string}[] = [];
-
-try {
-  accessToken = core.getInput('linear_access_token');
-  labelConfigs = JSON.parse(core.getInput('labels'));
-  packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
-  config.setValues({accessToken, labelConfigs, packageJsonFiles});
-} catch(err) {
-  core.setFailed('Invalid inputs ' + err.message);
-  process.exit();
-}
+import config from "./config";
 
 /**
  * Helper function to parse commit message and return issue ids
@@ -43,7 +29,7 @@ async function main(): Promise<void> {
   if (github.context.eventName === 'push') {
     const issueIds = new Set();
     const parts = payload.ref.split("refs/heads/");
-    const labelConf = labelConfigs.find(conf => conf.branch === parts?.[1]);
+    const labelConf = config.labelConfigs.find((conf: any) => conf.branch === parts?.[1]);
     if(!labelConf) return;
     payload.commits.forEach((commit: any) =>
       parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId))
