@@ -8,7 +8,8 @@
     "build": "tsc && npm run bundle",
     "tsc": "tsc",
     "bundle": "ncc build temp/index.js --license licenses.txt",
-    "x": "ts-node test.ts"
+    "x": "ts-node test.ts",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,9 @@
   "devDependencies": {
     "@vercel/ncc": "^0.28.6",
     "ts-node": "^10.0.0",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "@commitlint/cli": "^12.1.4",
+    "@commitlint/config-conventional": "^12.1.4",
+    "husky": "^6.0.0"
   }
 }

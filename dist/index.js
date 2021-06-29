@@ -6197,7 +6197,7 @@ var core = __nccwpck_require__(186);
 var github = __nccwpck_require__(438);
 var sdk_1 = __nccwpck_require__(851);
 var accessToken = null;
-var labelConfigs = (/* unused pure expression or super */ null && ([]));
+var labelConfigs = [];
 var packageJsonFiles = [];
 try {
     accessToken = core.getInput('linear_access_token');
@@ -6299,7 +6299,7 @@ function main() {
         });
     });
 }
-// main().catch(err => core.setFailed(err));
+main()["catch"](function (err) { return core.setFailed(err); });
 //# sourceMappingURL=index.js.map
 
 /***/ }),

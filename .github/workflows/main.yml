@@ -1,9 +1,9 @@
-#on:
-#  push:
-#    branches:
-#      - develop
+on:
+  push:
+    branches:
+      - develop
 
-on: [push]
+#on: [push]
 
 jobs:
   insert_issue_labels:
