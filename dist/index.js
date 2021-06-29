@@ -6292,6 +6292,8 @@ var github = __nccwpck_require__(5438);
 var linear_1 = __nccwpck_require__(1895);
 var github_1 = __nccwpck_require__(4973);
 var config_1 = __nccwpck_require__(379);
+var NO_ACTION = 'NO_ACTION';
+var FEATURE_COMPLETE = 'FEATURE_COMPLETE';
 /**
  * Helper function to parse commit message and return issue ids
  * @param commitMessage
@@ -6300,12 +6302,19 @@ var config_1 = __nccwpck_require__(379);
 function parseIssueIds(commitMessage) {
     var pattern = /^ref:\s?(.+)$/gmi;
     var matches = pattern.exec(commitMessage);
-    if (!matches)
-        return [];
+    if (!matches) {
+        return {
+            noAction: true,
+            featureComplete: false,
+            ids: []
+        };
+    }
     var ids = matches[1].split(',').map(function (v) { return v.trim(); });
-    if (ids.includes('NO_ACTION'))
-        return [];
-    return ids;
+    return {
+        noAction: ids.includes(NO_ACTION),
+        featureComplete: ids.includes(FEATURE_COMPLETE),
+        ids: ids.filter(function (id) { return [NO_ACTION, FEATURE_COMPLETE].includes(id) === false; })
+    };
 }
 /**
  * Main function to run the modules action
@@ -6313,46 +6322,64 @@ function parseIssueIds(commitMessage) {
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var payload, _a, owner, repo, gitapi, branchData, packageJsonContent, packageJson, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, payloadStr, issueIdsForBranchLabel, issueIdsForVersionLabel, parts, labelConf, tasks, packageJsonContent, packageJson_1, result;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
-                    payload = github.context.payload;
-                    _a = github.context.repo, owner = _a.owner, repo = _a.repo;
-                    console.log('github', owner, repo);
-                    gitapi = github_1["default"](owner, repo, 'develop');
-                    return [4 /*yield*/, gitapi.getBranch()];
+                    _a = github.context, payload = _a.payload, eventName = _a.eventName;
+                    if (eventName !== 'push')
+                        return [2 /*return*/];
+                    _b = github.context.repo, owner = _b.owner, repo = _b.repo;
+                    _c = payload.ref.split('refs/heads/'), branch = _c[1];
+                    githubApiClient = github_1["default"](owner, repo, branch);
+                    return [4 /*yield*/, githubApiClient.getBranch()];
                 case 1:
-                    branchData = _b.sent();
+                    branchData = _d.sent();
+                    // if(!branchData.protected) return; //TODO: need to enable thi
                     console.log('branch data', branchData);
-                    return [4 /*yield*/, gitapi.getFileContent('package.json')];
-                case 2:
-                    packageJsonContent = _b.sent();
-                    packageJson = JSON.parse(packageJsonContent);
-                    console.log('package version', packageJson.version);
                     payloadStr = JSON.stringify(payload, undefined, 2);
                     console.log('payload', payloadStr);
-                    if (!(github.context.eventName === 'push')) return [3 /*break*/, 4];
-                    issueIds_1 = new Set();
-                    parts_1 = payload.ref.split("refs/heads/");
-                    labelConf_1 = config_1["default"].labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
-                    if (!labelConf_1)
+                    issueIdsForBranchLabel = new Set();
+                    issueIdsForVersionLabel = new Set();
+                    parts = payload.ref.split("refs/heads/");
+                    labelConf = config_1["default"].labelConfigs.find(function (conf) { return conf.branch === (parts === null || parts === void 0 ? void 0 : parts[1]); });
+                    if (!labelConf)
                         return [2 /*return*/];
                     payload.commits.forEach(function (commit) {
-                        return parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
-                    });
-                    tasks = Array.from(issueIds_1).map(function (issueId) {
-                        return linear_1.insertLabelToIssue(issueId, {
-                            id: labelConf_1.id,
-                            name: "deployed-in-" + labelConf_1.branch
+                        var parseIssues = parseIssueIds(commit.message);
+                        console.log('parsed ids', parseIssues);
+                        if (parseIssues.noAction)
+                            return;
+                        parseIssues.ids.forEach(function (issueId) {
+                            issueIdsForBranchLabel.add(issueId);
+                            if (parseIssues.featureComplete) {
+                                issueIdsForVersionLabel.add(issueId);
+                            }
                         });
                     });
-                    return [4 /*yield*/, Promise.allSettled(tasks)];
-                case 3:
-                    result = _b.sent();
+                    tasks = Array.from(issueIdsForBranchLabel).map(function (issueId) {
+                        return linear_1.insertLabelToIssue(issueId, {
+                            id: labelConf.id,
+                            name: "deployed-in-" + branch
+                        });
+                    });
+                    if (!(issueIdsForVersionLabel.size > 0)) return [3 /*break*/, 3];
+                    return [4 /*yield*/, githubApiClient.getFileContent('package.json')];
+                case 2:
+                    packageJsonContent = _d.sent();
+                    packageJson_1 = JSON.parse(packageJsonContent);
+                    Array.from(issueIdsForVersionLabel).forEach(function (issueId) {
+                        return tasks.push(linear_1.insertLabelToIssue(issueId, {
+                            id: labelConf.id,
+                            name: "version-" + packageJson_1.version
+                        }));
+                    });
+                    _d.label = 3;
+                case 3: return [4 /*yield*/, Promise.allSettled(tasks)];
+                case 4:
+                    result = _d.sent();
                     console.log(result);
-                    _b.label = 4;
-                case 4: return [2 /*return*/];
+                    return [2 /*return*/];
             }
         });
     });
@@ -6406,31 +6433,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var Octokit = __nccwpck_require__(5375)/* .Octokit */ .v;
 var config_1 = __nccwpck_require__(379);
-function git(owner, repo, branch) {
+/**
+ * Main function
+ * @param owner
+ * @param repo
+ * @param branch
+ */
+function default_1(owner, repo, branch) {
     return {
-        getBranch: function () {
-            return getBranch(owner, repo, branch);
-        },
-        getFileContent: function (filePath) {
-            return getFileContent(owner, repo, branch, filePath);
-        }
+        getBranch: function () { return getBranch(owner, repo, branch); },
+        getFileContent: function (filePath) { return getFileContent(owner, repo, branch, filePath); }
     };
 }
-exports.default = git;
+exports.default = default_1;
+/**
+ * Get branch details
+ * @param owner
+ * @param repo
+ * @param branch
+ */
 function getBranch(owner, repo, branch) {
     return __awaiter(this, void 0, void 0, function () {
         var octokit, payload;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    octokit = new Octokit({
-                        auth: config_1["default"].githubToken
-                    });
-                    return [4 /*yield*/, octokit.repos.getBranch({
-                            owner: owner,
-                            repo: repo,
-                            branch: branch
-                        })];
+                    octokit = new Octokit({ auth: config_1["default"].githubToken });
+                    return [4 /*yield*/, octokit.repos.getBranch({ owner: owner, repo: repo, branch: branch })];
                 case 1:
                     payload = _a.sent();
                     return [2 /*return*/, payload.data];
@@ -6438,15 +6467,21 @@ function getBranch(owner, repo, branch) {
         });
     });
 }
+/**
+ * Read given file's content
+ * @param owner
+ * @param repo
+ * @param branch
+ * @param filePath
+ * @returns Promise<string> file content
+ */
 function getFileContent(owner, repo, branch, filePath) {
     return __awaiter(this, void 0, void 0, function () {
         var octokit, payload;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    octokit = new Octokit({
-                        auth: config_1["default"].githubToken
-                    });
+                    octokit = new Octokit({ auth: config_1["default"].githubToken });
                     return [4 /*yield*/, octokit.repos.getContent({
                             owner: owner,
                             repo: repo,
@@ -6536,12 +6571,8 @@ function insertLabelToIssue(issueId, labelInput) {
                     _a = _e.sent(), team = _a[0], existingLabels = _a[1];
                     if (!(team === null || team === void 0 ? void 0 : team.id))
                         return [2 /*return*/];
-                    return [4 /*yield*/, linear.issueLabelCreate({ id: labelInput.id, name: labelInput.name, teamId: team.id })];
-                case 4:
-                    _e.sent();
-                    return [4 /*yield*/, issue.update({ labelIds: existingLabels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(labelInput.id) })];
-                case 5:
-                    _e.sent();
+                    // await linear.issueLabelCreate({id: labelInput.id, name: labelInput.name, teamId: team.id});
+                    // await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(labelInput.id) });
                     console.log("label " + labelInput.name + " added to " + issueId);
                     return [2 /*return*/];
             }

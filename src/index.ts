@@ -5,18 +5,29 @@ import {insertLabelToIssue} from "./modules/linear";
 import githubApi from "./modules/github";
 import config from "./config";
 
+const NO_ACTION = 'NO_ACTION';
+const FEATURE_COMPLETE = 'FEATURE_COMPLETE';
 /**
  * Helper function to parse commit message and return issue ids
  * @param commitMessage
  * @return string[]
  */
-function parseIssueIds(commitMessage: string): string[] {
+function parseIssueIds(commitMessage: string): {noAction: boolean, featureComplete: boolean, ids: string[]} {
   const pattern = /^ref:\s?(.+)$/gmi;
   const matches = pattern.exec(commitMessage);
-  if(!matches) return [];
+  if(!matches) {
+    return {
+      noAction: true,
+      featureComplete: false,
+      ids:  []
+    }
+  }
   const ids = matches[1].split(',').map(v => v.trim());
-  if(ids.includes('NO_ACTION')) return [];
-  return ids;
+  return {
+    noAction: ids.includes(NO_ACTION),
+    featureComplete: ids.includes(FEATURE_COMPLETE),
+    ids: ids.filter(id => [NO_ACTION, FEATURE_COMPLETE].includes(id) === false)
+  };
 }
 
 /**
@@ -24,38 +35,61 @@ function parseIssueIds(commitMessage: string): string[] {
  * @return Promise<void>
  */
 async function main(): Promise<void> {
-  const {payload}: { payload: WebhookPayload } = github.context;
+  const {payload, eventName}: { payload: WebhookPayload, eventName: string } = github.context;
+  if(eventName !== 'push') return;
 
   const {owner, repo} = github.context.repo;
-  console.log('github', owner, repo);
-  const gitapi = githubApi(owner, repo, 'develop');
-  const branchData = await gitapi.getBranch();
+  const [, branch] = payload.ref.split('refs/heads/');
+
+  const githubApiClient = githubApi(owner, repo, branch);
+  const branchData = await githubApiClient.getBranch();
+
+  // if(!branchData.protected) return; //TODO: need to enable thi
   console.log('branch data', branchData);
-  const packageJsonContent = await gitapi.getFileContent('package.json');
-
-
-  const packageJson = JSON.parse(packageJsonContent);
-  console.log('package version', packageJson.version);
 
   const payloadStr = JSON.stringify(payload, undefined, 2);
   console.log('payload', payloadStr);
-  if (github.context.eventName === 'push') {
-    const issueIds = new Set();
-    const parts = payload.ref.split("refs/heads/");
-    const labelConf = config.labelConfigs.find((conf: any) => conf.branch === parts?.[1]);
-    if(!labelConf) return;
-    payload.commits.forEach((commit: any) =>
-      parseIssueIds(commit.message).forEach(issueId => issueIds.add(issueId))
-    );
-    const tasks: Promise<void>[] = Array.from(issueIds).map((issueId: string) =>
-      insertLabelToIssue(issueId, {
+
+
+  const issueIdsForBranchLabel = new Set();
+  const issueIdsForVersionLabel = new Set();
+
+  const parts = payload.ref.split("refs/heads/");
+  const labelConf = config.labelConfigs.find((conf: any) => conf.branch === parts?.[1]);
+  if(!labelConf) return;
+  payload.commits.forEach((commit: any) => {
+    const parseIssues = parseIssueIds(commit.message);
+    console.log('parsed ids',  parseIssues);
+    if(parseIssues.noAction) return;
+    parseIssues.ids.forEach(issueId => {
+      issueIdsForBranchLabel.add(issueId);
+      if(parseIssues.featureComplete) {
+        issueIdsForVersionLabel.add(issueId);
+      }
+    });
+  });
+
+  const tasks: Promise<void>[] = Array.from(issueIdsForBranchLabel).map((issueId: string) =>
+    insertLabelToIssue(issueId, {
+      id: labelConf.id,
+      name: `deployed-in-${branch}`
+    })
+  );
+
+  if(issueIdsForVersionLabel.size > 0) {
+    const packageJsonContent = await githubApiClient.getFileContent('package.json');
+    const packageJson = JSON.parse(packageJsonContent);
+    Array.from(issueIdsForVersionLabel).forEach((issueId: string) =>
+      tasks.push(insertLabelToIssue(issueId, {
         id: labelConf.id,
-        name: `deployed-in-${labelConf.branch}`
+        name: `version-${packageJson.version}`
       })
-    );
-    const result = await Promise.allSettled(tasks);
-    console.log(result);
+    ));
   }
+
+  const result = await Promise.allSettled(tasks);
+  console.log(result);
+
 }
 
 main().catch(err => core.setFailed(err));
