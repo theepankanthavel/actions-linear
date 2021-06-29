@@ -4,14 +4,12 @@ type Config = {
   packageJsonFiles: {package: string, path: string}[]
 }
 
-let config: Config = {
-  accessToken: '',
-  labelConfigs: [],
-  packageJsonFiles: []
-}
-
-export function init(values: Config) {
-  config = values;
-}
-
-export default config;
+export default {
+  _values: {},
+  setValues(values: Config) {
+    this.values = values;
+  },
+  getValues(): Config {
+    return this._values;
+  }
+};
