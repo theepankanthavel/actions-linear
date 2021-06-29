@@ -6157,17 +6157,15 @@ function wrappy (fn, cb) {
 "use strict";
 
 exports.__esModule = true;
-exports.init = void 0;
-var config = {
-    accessToken: '',
-    labelConfigs: [],
-    packageJsonFiles: []
+exports.default = {
+    _values: {},
+    setValues: function (values) {
+        this.values = values;
+    },
+    getValues: function () {
+        return this._values;
+    }
 };
-function init(values) {
-    config = values;
-}
-exports.init = init;
-exports.default = config;
 //# sourceMappingURL=config.js.map
 
 /***/ }),
@@ -6216,7 +6214,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var core = __nccwpck_require__(186);
 var github = __nccwpck_require__(438);
-var config = __nccwpck_require__(379);
+var config_1 = __nccwpck_require__(379);
 var linear_1 = __nccwpck_require__(895);
 var accessToken = null;
 var labelConfigs = [];
@@ -6225,7 +6223,7 @@ try {
     accessToken = core.getInput('linear_access_token');
     labelConfigs = JSON.parse(core.getInput('labels'));
     packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
-    config.init({ accessToken: accessToken, labelConfigs: labelConfigs, packageJsonFiles: packageJsonFiles });
+    config_1["default"].setValues({ accessToken: accessToken, labelConfigs: labelConfigs, packageJsonFiles: packageJsonFiles });
 }
 catch (err) {
     core.setFailed('Invalid inputs ' + err.message);
@@ -6346,7 +6344,7 @@ function insertLabelToIssue(issueId, labelInput) {
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    linear = new sdk_1.LinearClient({ apiKey: config_1["default"].accessToken });
+                    linear = new sdk_1.LinearClient({ apiKey: config_1["default"].getValues().accessToken });
                     return [4 /*yield*/, linear.issue(issueId)];
                 case 1:
                     issue = _e.sent();

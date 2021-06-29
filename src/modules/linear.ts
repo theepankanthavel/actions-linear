@@ -8,7 +8,7 @@ import config from '../config';
  * @return Promise<void>
  */
 export async function insertLabelToIssue(issueId: string, labelInput: {id: string, name: string}): Promise<void> {
-  const linear = new LinearClient({apiKey: config.accessToken});
+  const linear = new LinearClient({apiKey: config.getValues().accessToken});
   const issue = await linear.issue(issueId);
   if(!issue?.id) return;
 

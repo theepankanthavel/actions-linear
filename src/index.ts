@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import * as config from './config';
+import config from './config';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 import {insertLabelToIssue} from "./modules/linear";
 
@@ -12,7 +12,7 @@ try {
   accessToken = core.getInput('linear_access_token');
   labelConfigs = JSON.parse(core.getInput('labels'));
   packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
-  config.init({accessToken, labelConfigs, packageJsonFiles});
+  config.setValues({accessToken, labelConfigs, packageJsonFiles});
 } catch(err) {
   core.setFailed('Invalid inputs ' + err.message);
   process.exit();
