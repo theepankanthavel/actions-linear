@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
 import {insertLabelToIssue} from "./modules/linear";
-import {getBranch} from "./modules/github";
+import {getBranch, getFileContent} from "./modules/github";
 import config from "./config";
 
 /**
@@ -29,8 +29,11 @@ async function main(): Promise<void> {
   const {owner, repo} = github.context.repo;
   console.log('github', owner, repo);
   await getBranch(owner, repo, 'develop');
+  const packageJsonContent = await getFileContent(owner, repo, 'develop', 'package.json');
 
 
+  const packageJson = JSON.parse(packageJsonContent);
+  console.log('package version', packageJson.version);
 
   const payloadStr = JSON.stringify(payload, undefined, 2);
   console.log('payload', payloadStr);
