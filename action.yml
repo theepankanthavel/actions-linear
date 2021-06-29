@@ -1,16 +1,20 @@
 name: 'Linear'
 description: 'Integration with Linear app'
 inputs:
-  your_name:
-    description: 'Your name'
-    required: true
-    default: 'First Last'
   linear_access_token:
     description: 'developers.linear.app api access token'
     required: true
     default: ''
+  GITHUB_TOKEN:
+    description: 'Github api token'
+    required: true
+    default: ''
   labels:
     description: 'List of branch-label associations'
+    required: true
+    default: >-
+  package_json_path:
+    description: 'List of package.json file path'
     required: true
     default: >-
 outputs:

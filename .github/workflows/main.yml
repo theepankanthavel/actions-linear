@@ -3,6 +3,8 @@ on:
     branches:
       - develop
 
+#on: [push]
+
 jobs:
   insert_issue_labels:
     runs-on: ubuntu-latest
@@ -15,6 +17,7 @@ jobs:
         uses: ./
         with:
           linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           labels: >-
             [{
               "branch": "develop",
@@ -32,6 +35,11 @@ jobs:
               "branch": "staging",
               "label": "deployed-in-staging",
               "id": "c141a90c-5a5f-43d5-ab4e-ac7099f03a69"
+            }]
+          package_json_path: >-
+            [{
+              "package": "web",
+              "path": "package.json"
             }]
       - name: Get the output time
         run: echo "The time was ${{ steps.hello.outputs.time }}"

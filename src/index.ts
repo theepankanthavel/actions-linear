@@ -5,18 +5,15 @@ import {WebhookPayload} from "@actions/github/lib/interfaces";
 
 let accessToken: string = null;
 let labelConfigs: {id: string, branch: string, label: string}[] = [];
+let packageJsonFiles: {package: string, path: string}[] = [];
 
 try {
   accessToken = core.getInput('linear_access_token');
-} catch(err) {
-  core.setFailed('Unable to get linear access token');
-  process.exit();
-}
-
-try {
   labelConfigs = JSON.parse(core.getInput('labels'));
+  packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
+  console.log(packageJsonFiles[0].package);
 } catch(err) {
-  core.setFailed('Unable to get label configs ' + err);
+  core.setFailed('Invalid inputs ' + err.message);
   process.exit();
 }
 

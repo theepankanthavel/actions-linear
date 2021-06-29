@@ -3476,7 +3476,7 @@ const Endpoints = {
   }
 };
 
-const VERSION = "5.3.1";
+const VERSION = "5.3.4";
 
 function endpointsToMethods(octokit, endpointsMap) {
   const newMethods = {};
@@ -6198,18 +6198,15 @@ var github = __nccwpck_require__(438);
 var sdk_1 = __nccwpck_require__(851);
 var accessToken = null;
 var labelConfigs = [];
+var packageJsonFiles = [];
 try {
     accessToken = core.getInput('linear_access_token');
-}
-catch (err) {
-    core.setFailed('Unable to get linear access token');
-    process.exit();
-}
-try {
     labelConfigs = JSON.parse(core.getInput('labels'));
+    packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
+    console.log(packageJsonFiles[0].package);
 }
 catch (err) {
-    core.setFailed('Unable to get label configs ' + err);
+    core.setFailed('Invalid inputs ' + err.message);
     process.exit();
 }
 var linear = new sdk_1.LinearClient({ apiKey: accessToken });
