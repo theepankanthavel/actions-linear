@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {LinearClient} from '@linear/sdk';
+import * as config from './config';
 import {WebhookPayload} from "@actions/github/lib/interfaces";
+import {insertLabelToIssue} from "./modules/linear";
 
 let accessToken: string = null;
 let labelConfigs: {id: string, branch: string, label: string}[] = [];
@@ -11,13 +12,11 @@ try {
   accessToken = core.getInput('linear_access_token');
   labelConfigs = JSON.parse(core.getInput('labels'));
   packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
-  console.log(packageJsonFiles[0].package);
+  config.init({accessToken, labelConfigs, packageJsonFiles});
 } catch(err) {
   core.setFailed('Invalid inputs ' + err.message);
   process.exit();
 }
-
-const linear = new LinearClient({apiKey: accessToken});
 
 /**
  * Helper function to parse commit message and return issue ids
@@ -34,26 +33,7 @@ function parseIssueIds(commitMessage: string): string[] {
 }
 
 /**
- * Assign label to passed issue
- * @param issueId
- * @param labelInput
- * @return Promise<void>
- */
-async function insertLabelToIssue(issueId: string, labelInput: {id: string, name: string}): Promise<void> {
-  const issue = await linear.issue(issueId);
-  if(!issue?.id) return;
-
-  const [team, existingLabels] = await Promise.all([issue.team, (await issue.labels()).nodes]);
-  if(!team?.id) return;
-
-  await linear.issueLabelCreate({id: labelInput.id, name: labelInput.name, teamId: team.id});
-  await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(labelInput.id) });
-
-  console.log(`label ${labelInput.name} added to ${issueId}`);
-}
-
-/**
- * Main function to run the github action
+ * Main function to run the modules action
  * @return Promise<void>
  */
 async function main(): Promise<void> {

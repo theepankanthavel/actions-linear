@@ -6151,6 +6151,27 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 379:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.__esModule = true;
+exports.init = void 0;
+var config = {
+    accessToken: '',
+    labelConfigs: [],
+    packageJsonFiles: []
+};
+function init(values) {
+    config = values;
+}
+exports.init = init;
+exports.default = config;
+//# sourceMappingURL=config.js.map
+
+/***/ }),
+
 /***/ 806:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -6195,7 +6216,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var core = __nccwpck_require__(186);
 var github = __nccwpck_require__(438);
-var sdk_1 = __nccwpck_require__(851);
+var config = __nccwpck_require__(379);
+var linear_1 = __nccwpck_require__(895);
 var accessToken = null;
 var labelConfigs = [];
 var packageJsonFiles = [];
@@ -6203,13 +6225,12 @@ try {
     accessToken = core.getInput('linear_access_token');
     labelConfigs = JSON.parse(core.getInput('labels'));
     packageJsonFiles = JSON.parse(core.getInput('package_json_path'));
-    console.log(packageJsonFiles[0].package);
+    config.init({ accessToken: accessToken, labelConfigs: labelConfigs, packageJsonFiles: packageJsonFiles });
 }
 catch (err) {
     core.setFailed('Invalid inputs ' + err.message);
     process.exit();
 }
-var linear = new sdk_1.LinearClient({ apiKey: accessToken });
 /**
  * Helper function to parse commit message and return issue ids
  * @param commitMessage
@@ -6226,6 +6247,94 @@ function parseIssueIds(commitMessage) {
     return ids;
 }
 /**
+ * Main function to run the modules action
+ * @return Promise<void>
+ */
+function main() {
+    return __awaiter(this, void 0, void 0, function () {
+        var payload, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    payload = github.context.payload;
+                    payloadStr = JSON.stringify(payload, undefined, 2);
+                    console.log('payload', payloadStr);
+                    if (!(github.context.eventName === 'push')) return [3 /*break*/, 2];
+                    issueIds_1 = new Set();
+                    parts_1 = payload.ref.split("refs/heads/");
+                    labelConf_1 = labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
+                    if (!labelConf_1)
+                        return [2 /*return*/];
+                    payload.commits.forEach(function (commit) {
+                        return parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
+                    });
+                    tasks = Array.from(issueIds_1).map(function (issueId) {
+                        return linear_1.insertLabelToIssue(issueId, {
+                            id: labelConf_1.id,
+                            name: "deployed-in-" + labelConf_1.branch
+                        });
+                    });
+                    return [4 /*yield*/, Promise.allSettled(tasks)];
+                case 1:
+                    result = _a.sent();
+                    console.log(result);
+                    _a.label = 2;
+                case 2: return [2 /*return*/];
+            }
+        });
+    });
+}
+main()["catch"](function (err) { return core.setFailed(err); });
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 895:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+exports.__esModule = true;
+exports.insertLabelToIssue = void 0;
+var sdk_1 = __nccwpck_require__(851);
+var config_1 = __nccwpck_require__(379);
+/**
  * Assign label to passed issue
  * @param issueId
  * @param labelInput
@@ -6233,10 +6342,12 @@ function parseIssueIds(commitMessage) {
  */
 function insertLabelToIssue(issueId, labelInput) {
     return __awaiter(this, void 0, void 0, function () {
-        var issue, _a, team, existingLabels, _b, _c, _d;
+        var linear, issue, _a, team, existingLabels, _b, _c, _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
-                case 0: return [4 /*yield*/, linear.issue(issueId)];
+                case 0:
+                    linear = new sdk_1.LinearClient({ apiKey: config_1["default"].accessToken });
+                    return [4 /*yield*/, linear.issue(issueId)];
                 case 1:
                     issue = _e.sent();
                     if (!(issue === null || issue === void 0 ? void 0 : issue.id))
@@ -6261,46 +6372,8 @@ function insertLabelToIssue(issueId, labelInput) {
         });
     });
 }
-/**
- * Main function to run the github action
- * @return Promise<void>
- */
-function main() {
-    return __awaiter(this, void 0, void 0, function () {
-        var payload, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    payload = github.context.payload;
-                    payloadStr = JSON.stringify(payload, undefined, 2);
-                    console.log('payload', payloadStr);
-                    if (!(github.context.eventName === 'push')) return [3 /*break*/, 2];
-                    issueIds_1 = new Set();
-                    parts_1 = payload.ref.split("refs/heads/");
-                    labelConf_1 = labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
-                    if (!labelConf_1)
-                        return [2 /*return*/];
-                    payload.commits.forEach(function (commit) {
-                        return parseIssueIds(commit.message).forEach(function (issueId) { return issueIds_1.add(issueId); });
-                    });
-                    tasks = Array.from(issueIds_1).map(function (issueId) {
-                        return insertLabelToIssue(issueId, {
-                            id: labelConf_1.id,
-                            name: "deployed-in-" + labelConf_1.branch
-                        });
-                    });
-                    return [4 /*yield*/, Promise.allSettled(tasks)];
-                case 1:
-                    result = _a.sent();
-                    console.log(result);
-                    _a.label = 2;
-                case 2: return [2 /*return*/];
-            }
-        });
-    });
-}
-main()["catch"](function (err) { return core.setFailed(err); });
-//# sourceMappingURL=index.js.map
+exports.insertLabelToIssue = insertLabelToIssue;
+//# sourceMappingURL=linear.js.map
 
 /***/ }),
 
