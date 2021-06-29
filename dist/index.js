@@ -6313,7 +6313,7 @@ function parseIssueIds(commitMessage) {
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var payload, _a, owner, repo, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
+        var payload, _a, owner, repo, packageJsonContent, packageJson, payloadStr, issueIds_1, parts_1, labelConf_1, tasks, result;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -6323,9 +6323,14 @@ function main() {
                     return [4 /*yield*/, github_1.getBranch(owner, repo, 'develop')];
                 case 1:
                     _b.sent();
+                    return [4 /*yield*/, github_1.getFileContent(owner, repo, 'develop', 'package.json')];
+                case 2:
+                    packageJsonContent = _b.sent();
+                    packageJson = JSON.parse(packageJsonContent);
+                    console.log('package version', packageJson.version);
                     payloadStr = JSON.stringify(payload, undefined, 2);
                     console.log('payload', payloadStr);
-                    if (!(github.context.eventName === 'push')) return [3 /*break*/, 3];
+                    if (!(github.context.eventName === 'push')) return [3 /*break*/, 4];
                     issueIds_1 = new Set();
                     parts_1 = payload.ref.split("refs/heads/");
                     labelConf_1 = config_1["default"].labelConfigs.find(function (conf) { return conf.branch === (parts_1 === null || parts_1 === void 0 ? void 0 : parts_1[1]); });
@@ -6341,11 +6346,11 @@ function main() {
                         });
                     });
                     return [4 /*yield*/, Promise.allSettled(tasks)];
-                case 2:
+                case 3:
                     result = _b.sent();
                     console.log(result);
-                    _b.label = 3;
-                case 3: return [2 /*return*/];
+                    _b.label = 4;
+                case 4: return [2 /*return*/];
             }
         });
     });
@@ -6397,7 +6402,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.getBranch = void 0;
+exports.getFileContent = exports.getBranch = void 0;
 var Octokit = __nccwpck_require__(5375)/* .Octokit */ .v;
 var config_1 = __nccwpck_require__(379);
 function getBranch(owner, repo, branch) {
@@ -6423,6 +6428,30 @@ function getBranch(owner, repo, branch) {
     });
 }
 exports.getBranch = getBranch;
+function getFileContent(owner, repo, branch, filePath) {
+    return __awaiter(this, void 0, void 0, function () {
+        var octokit, payload;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    octokit = new Octokit({
+                        auth: config_1["default"].githubToken
+                    });
+                    return [4 /*yield*/, octokit.repos.getContent({
+                            owner: owner,
+                            repo: repo,
+                            ref: branch,
+                            path: filePath
+                        })];
+                case 1:
+                    payload = _a.sent();
+                    console.log(payload);
+                    return [2 /*return*/, Buffer.from(payload.data.content, 'base64').toString('utf-8')];
+            }
+        });
+    });
+}
+exports.getFileContent = getFileContent;
 //# sourceMappingURL=github.js.map
 
 /***/ }),
