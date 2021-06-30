@@ -6316,7 +6316,7 @@ function main() {
                     }
                     payloadStr = JSON.stringify(payload, undefined, 2);
                     console.log('payload', payloadStr);
-                    issueIds = util_1.parseIssueIds(payload.commit);
+                    issueIds = util_1.parseIssueIds(payload.commits);
                     console.log('issue ids', issueIds);
                     return [4 /*yield*/, githubApiClient.getFileContent('package.json')];
                 case 2:
