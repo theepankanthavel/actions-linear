@@ -12,15 +12,16 @@ const FEATURE_COMPLETE = 'FEATURE_COMPLETE';
  */
 export function parseIssueIds(commits: {message: string}[]): IssueIds {
   const collection: IssueIds = {};
-  const pattern = /^\s*ref:\s?(.+)$/gmi;
 
   commits.forEach(({message}) => {
+    const pattern = /^\s*ref:\s?(.+)$/gmi;
     const matches = pattern.exec(message);
     if(!matches) return;
     const ids = matches[1].split(',').map(v => v.trim());
     if(ids.includes(NO_ACTION)) return;
     const featureComplete = ids.includes(FEATURE_COMPLETE);
-    ids.forEach(id => {
+    ids.filter((id) => [NO_ACTION, FEATURE_COMPLETE].includes(id) === false)
+      .forEach(id => {
       collection[id] = Object.assign(collection[id] || {}, {
         featureComplete: collection[id]?.featureComplete || featureComplete
       });
