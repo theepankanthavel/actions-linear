@@ -13,24 +13,6 @@ jobs:
         with:
           linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          labels: >-
-            [{
-              "branch": "develop",
-              "label": "deployed-in-develop",
-              "id": "3c22e5f0-49c1-4231-adeb-81dfca80a09e"
-            }, {
-              "branch": "uat",
-              "label": "deployed-in-uat",
-              "id": "6e34d36e-8c3a-4191-a13c-4e7d93b748c3"
-            }, {
-              "branch": "staging",
-              "label": "deployed-in-staging",
-              "id": "5113f1a8-19a1-4925-8d29-d4abb976e1c9"
-            }, {
-              "branch": "staging",
-              "label": "deployed-in-staging",
-              "id": "c141a90c-5a5f-43d5-ab4e-ac7099f03a69"
-            }]
           package_json_path: >-
             [{
               "package": "web",

@@ -4,10 +4,10 @@ import config from '../config';
 /**
  * Assign label to passed issue
  * @param issueId
- * @param labelInput
+ * @param labels
  * @return Promise<void>
  */
-export async function insertLabelToIssue(issueId: string, labelInput: {id: string, name: string}): Promise<void> {
+export async function insertLabelToIssue(issueId: string, labels?: string[]): Promise<void> {
   const linear = new LinearClient({apiKey: config.accessToken});
   const issue = await linear.issue(issueId);
   if(!issue?.id) return;
@@ -15,16 +15,27 @@ export async function insertLabelToIssue(issueId: string, labelInput: {id: strin
   const [team, existingLabels] = await Promise.all([issue.team, (await issue.labels()).nodes]);
   if(!team?.id) return;
 
-  let issueLabelId: string;
-  try {
-    const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
-    issueLabelId = (await createIssueLabel.issueLabel).id;
-  } catch(err) {
-    issueLabelId = await getIssueLabelId(team.id, labelInput.name);
-  }
-  await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(issueLabelId) });
-  console.log(`label ${labelInput.name} added to ${issueId}`);
+  //TODO: This could be improved by cache implementation
+  const newLabelIds: string[] = await Promise.all(labels.map(async(labelName) => {
+    try {
+      const createIssueLabel = await linear.issueLabelCreate({teamId: team.id, name: labelName});
+      return (await createIssueLabel.issueLabel).id;
+    } catch(err) {
+      return await getIssueLabelId(team.id, labelName);
+    }
+  }));
+
+  // let issueLabelId: string;
+  // try {
+  //   const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
+  //   issueLabelId = (await createIssueLabel.issueLabel).id;
+  // } catch(err) {
+  //   issueLabelId = await getIssueLabelId(team.id, labelInput.name);
+  // }
+  await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(newLabelIds) });
+  console.log(`label ${labels.join(', ')} added to ${issueId}`);
 }
+
 
 /**
  * Get issue label id by name and team id

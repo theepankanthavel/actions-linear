@@ -6225,14 +6225,12 @@ var core = __nccwpck_require__(2186);
 var config = {
     accessToken: '',
     githubToken: '',
-    labelConfigs: [],
     packageJsonFiles: []
 };
 try {
     config = {
         accessToken: core.getInput('linear_access_token'),
         githubToken: core.getInput('GITHUB_TOKEN'),
-        labelConfigs: JSON.parse(core.getInput('labels')),
         packageJsonFiles: JSON.parse(core.getInput('package_json_path'))
     };
 }
@@ -6291,38 +6289,14 @@ var core = __nccwpck_require__(2186);
 var github = __nccwpck_require__(5438);
 var linear_1 = __nccwpck_require__(1895);
 var github_1 = __nccwpck_require__(4973);
-var config_1 = __nccwpck_require__(379);
-var NO_ACTION = 'NO_ACTION';
-var FEATURE_COMPLETE = 'FEATURE_COMPLETE';
-/**
- * Helper function to parse commit message and return issue ids
- * @param commitMessage
- * @return string[]
- */
-function parseIssueIds(commitMessage) {
-    var pattern = /^ref:\s?(.+)$/gmi;
-    var matches = pattern.exec(commitMessage);
-    if (!matches) {
-        return {
-            noAction: true,
-            featureComplete: false,
-            ids: []
-        };
-    }
-    var ids = matches[1].split(',').map(function (v) { return v.trim(); });
-    return {
-        noAction: ids.includes(NO_ACTION),
-        featureComplete: ids.includes(FEATURE_COMPLETE),
-        ids: ids.filter(function (id) { return [NO_ACTION, FEATURE_COMPLETE].includes(id) === false; })
-    };
-}
+var util_1 = __nccwpck_require__(744);
 /**
  * Main function to run the modules action
  * @return Promise<void>
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, payloadStr, issueIdsForBranchLabel, issueIdsForVersionLabel, parts, labelConf, tasks, packageJsonContent, packageJson_1, result;
+        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, payloadStr, issueIds, packageJsonContent, packageJson, tasks, result;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -6342,44 +6316,21 @@ function main() {
                     }
                     payloadStr = JSON.stringify(payload, undefined, 2);
                     console.log('payload', payloadStr);
-                    issueIdsForBranchLabel = new Set();
-                    issueIdsForVersionLabel = new Set();
-                    parts = payload.ref.split("refs/heads/");
-                    labelConf = config_1["default"].labelConfigs.find(function (conf) { return conf.branch === (parts === null || parts === void 0 ? void 0 : parts[1]); });
-                    if (!labelConf)
-                        return [2 /*return*/];
-                    payload.commits.forEach(function (commit) {
-                        var parseIssues = parseIssueIds(commit.message);
-                        console.log('parsed ids', parseIssues);
-                        if (parseIssues.noAction)
-                            return;
-                        parseIssues.ids.forEach(function (issueId) {
-                            issueIdsForBranchLabel.add(issueId);
-                            if (parseIssues.featureComplete) {
-                                issueIdsForVersionLabel.add(issueId);
-                            }
-                        });
-                    });
-                    tasks = Array.from(issueIdsForBranchLabel).map(function (issueId) {
-                        return linear_1.insertLabelToIssue(issueId, {
-                            id: labelConf.id,
-                            name: "deployed-in-" + branch
-                        });
-                    });
-                    if (!(issueIdsForVersionLabel.size > 0)) return [3 /*break*/, 3];
+                    issueIds = util_1.parseIssueIds(payload.commit);
+                    console.log('issue ids', issueIds);
                     return [4 /*yield*/, githubApiClient.getFileContent('package.json')];
                 case 2:
                     packageJsonContent = _d.sent();
-                    packageJson_1 = JSON.parse(packageJsonContent);
-                    Array.from(issueIdsForVersionLabel).forEach(function (issueId) {
-                        return tasks.push(linear_1.insertLabelToIssue(issueId, {
-                            id: labelConf.id,
-                            name: "version-" + packageJson_1.version
-                        }));
+                    packageJson = JSON.parse(packageJsonContent);
+                    tasks = Object.keys(issueIds).map(function (issueId) {
+                        var labels = ["deployed-in-" + branch];
+                        if (issueIds[issueId].featureComplete) {
+                            labels.push("version-" + packageJson.version);
+                        }
+                        return linear_1.insertLabelToIssue(issueId, labels);
                     });
-                    _d.label = 3;
-                case 3: return [4 /*yield*/, Promise.allSettled(tasks)];
-                case 4:
+                    return [4 /*yield*/, Promise.allSettled(tasks)];
+                case 3:
                     result = _d.sent();
                     console.log(result);
                     return [2 /*return*/];
@@ -6551,12 +6502,13 @@ var config_1 = __nccwpck_require__(379);
 /**
  * Assign label to passed issue
  * @param issueId
- * @param labelInput
+ * @param labels
  * @return Promise<void>
  */
-function insertLabelToIssue(issueId, labelInput) {
+function insertLabelToIssue(issueId, labels) {
     return __awaiter(this, void 0, void 0, function () {
-        var linear, issue, _a, team, existingLabels, _b, _c, _d, issueLabelId, createIssueLabel, err_1;
+        var linear, issue, _a, team, existingLabels, _b, _c, _d, newLabelIds;
+        var _this = this;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -6574,26 +6526,45 @@ function insertLabelToIssue(issueId, labelInput) {
                     _a = _e.sent(), team = _a[0], existingLabels = _a[1];
                     if (!(team === null || team === void 0 ? void 0 : team.id))
                         return [2 /*return*/];
-                    _e.label = 4;
+                    return [4 /*yield*/, Promise.all(labels.map(function (labelName) { return __awaiter(_this, void 0, void 0, function () {
+                            var createIssueLabel, err_1;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 3, , 5]);
+                                        return [4 /*yield*/, linear.issueLabelCreate({ teamId: team.id, name: labelName })];
+                                    case 1:
+                                        createIssueLabel = _a.sent();
+                                        return [4 /*yield*/, createIssueLabel.issueLabel];
+                                    case 2: return [2 /*return*/, (_a.sent()).id];
+                                    case 3:
+                                        err_1 = _a.sent();
+                                        return [4 /*yield*/, getIssueLabelId(team.id, labelName)];
+                                    case 4: return [2 /*return*/, _a.sent()];
+                                    case 5: return [2 /*return*/];
+                                }
+                            });
+                        }); }))];
                 case 4:
-                    _e.trys.push([4, 7, , 9]);
-                    return [4 /*yield*/, linear.issueLabelCreate({ name: labelInput.name, teamId: team.id })];
+                    newLabelIds = _e.sent();
+                    // let issueLabelId: string;
+                    // try {
+                    //   const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
+                    //   issueLabelId = (await createIssueLabel.issueLabel).id;
+                    // } catch(err) {
+                    //   issueLabelId = await getIssueLabelId(team.id, labelInput.name);
+                    // }
+                    return [4 /*yield*/, issue.update({ labelIds: existingLabels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(newLabelIds) })];
                 case 5:
-                    createIssueLabel = _e.sent();
-                    return [4 /*yield*/, createIssueLabel.issueLabel];
-                case 6:
-                    issueLabelId = (_e.sent()).id;
-                    return [3 /*break*/, 9];
-                case 7:
-                    err_1 = _e.sent();
-                    return [4 /*yield*/, getIssueLabelId(team.id, labelInput.name)];
-                case 8:
-                    issueLabelId = _e.sent();
-                    return [3 /*break*/, 9];
-                case 9: return [4 /*yield*/, issue.update({ labelIds: existingLabels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(issueLabelId) })];
-                case 10:
+                    // let issueLabelId: string;
+                    // try {
+                    //   const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
+                    //   issueLabelId = (await createIssueLabel.issueLabel).id;
+                    // } catch(err) {
+                    //   issueLabelId = await getIssueLabelId(team.id, labelInput.name);
+                    // }
                     _e.sent();
-                    console.log("label " + labelInput.name + " added to " + issueId);
+                    console.log("label " + labels.join(', ') + " added to " + issueId);
                     return [2 /*return*/];
             }
         });
@@ -6638,6 +6609,49 @@ function getIssueLabelId(teamId, labelName) {
     });
 }
 //# sourceMappingURL=linear.js.map
+
+/***/ }),
+
+/***/ 744:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.__esModule = true;
+exports.parseIssueIds = void 0;
+var NO_ACTION = 'NO_ACTION';
+var FEATURE_COMPLETE = 'FEATURE_COMPLETE';
+/**
+ * Helper function to parse commit message and return issue ids
+ * @param commits
+ * @return string[]
+ */
+function parseIssueIds(commits) {
+    var collection = {};
+    var pattern = /^\s*ref:\s?(.+)$/gmi;
+    commits.forEach(function (_a) {
+        var message = _a.message;
+        console.log(message);
+        var matches = pattern.exec(message);
+        console.log('match', matches);
+        if (!matches)
+            return;
+        var ids = matches[1].split(',').map(function (v) { return v.trim(); });
+        console.log(ids);
+        if (ids.includes(NO_ACTION))
+            return;
+        var featureComplete = ids.includes(FEATURE_COMPLETE);
+        ids.forEach(function (id) {
+            var _a;
+            collection[id] = Object.assign(collection[id] || {}, {
+                featureComplete: ((_a = collection[id]) === null || _a === void 0 ? void 0 : _a.featureComplete) || featureComplete
+            });
+        });
+    });
+    return collection;
+}
+exports.parseIssueIds = parseIssueIds;
+//# sourceMappingURL=util.js.map
 
 /***/ }),
 
