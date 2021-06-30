@@ -6553,7 +6553,7 @@ var config_1 = __nccwpck_require__(379);
  */
 function insertLabelToIssue(issueId, labelInput) {
     return __awaiter(this, void 0, void 0, function () {
-        var linear, issue, _a, team, existingLabels, _b, _c, _d;
+        var linear, issue, _a, team, existingLabels, _b, _c, _d, issueLabelId, createIssueLabel, err_1;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -6571,8 +6571,25 @@ function insertLabelToIssue(issueId, labelInput) {
                     _a = _e.sent(), team = _a[0], existingLabels = _a[1];
                     if (!(team === null || team === void 0 ? void 0 : team.id))
                         return [2 /*return*/];
-                    // await linear.issueLabelCreate({id: labelInput.id, name: labelInput.name, teamId: team.id});
-                    // await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(labelInput.id) });
+                    _e.label = 4;
+                case 4:
+                    _e.trys.push([4, 7, , 9]);
+                    return [4 /*yield*/, linear.issueLabelCreate({ name: labelInput.name, teamId: team.id })];
+                case 5:
+                    createIssueLabel = _e.sent();
+                    return [4 /*yield*/, createIssueLabel.issueLabel];
+                case 6:
+                    issueLabelId = (_e.sent()).id;
+                    return [3 /*break*/, 9];
+                case 7:
+                    err_1 = _e.sent();
+                    return [4 /*yield*/, getIssueLabelId(team.id, labelInput.name)];
+                case 8:
+                    issueLabelId = _e.sent();
+                    return [3 /*break*/, 9];
+                case 9: return [4 /*yield*/, issue.update({ labelIds: existingLabels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(issueLabelId) })];
+                case 10:
+                    _e.sent();
                     console.log("label " + labelInput.name + " added to " + issueId);
                     return [2 /*return*/];
             }
@@ -6580,6 +6597,43 @@ function insertLabelToIssue(issueId, labelInput) {
     });
 }
 exports.insertLabelToIssue = insertLabelToIssue;
+/**
+ * Get issue label id by name and team id
+ * @param teamId
+ * @param labelName
+ * @returns Promise<string> label id
+ */
+function getIssueLabelId(teamId, labelName) {
+    return __awaiter(this, void 0, void 0, function () {
+        var linear, team, lastIssueId, response, issueLabel;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    linear = new sdk_1.LinearClient({ apiKey: config_1["default"].accessToken });
+                    return [4 /*yield*/, linear.team(teamId)];
+                case 1:
+                    team = _a.sent();
+                    lastIssueId = null;
+                    _a.label = 2;
+                case 2:
+                    if (false) {}
+                    return [4 /*yield*/, team.labels({ first: 250, after: lastIssueId })];
+                case 3:
+                    response = _a.sent();
+                    issueLabel = response.nodes.find(function (node) { return node.name === labelName.trim(); });
+                    if (issueLabel) {
+                        return [2 /*return*/, issueLabel.id];
+                    }
+                    if (!response.pageInfo.hasNextPage) {
+                        throw 'Issue label id not found';
+                    }
+                    lastIssueId = response.nodes[response.nodes.length - 1].id;
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
 //# sourceMappingURL=linear.js.map
 
 /***/ }),
