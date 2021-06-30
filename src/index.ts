@@ -29,7 +29,7 @@ async function main(): Promise<void> {
   console.log('payload', payloadStr);
 
 
-  const issueIds = parseIssueIds(payload.commit);
+  const issueIds = parseIssueIds(payload.commits);
   console.log('issue ids', issueIds);
   // const issueIdsForVersionLabel = new Set();
 
