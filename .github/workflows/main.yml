@@ -1,18 +1,22 @@
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  hello_world_job:
+  insert_issue_labels:
     runs-on: ubuntu-latest
-    name: Create tags in linear.app
+    name: Add labels to issues in Linear
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Print commit messages
-        id: hello
+      - name: Add labels to issues in Linear
+        id: labels
         uses: ./
         with:
-          your_name: 'Theepan K'
           linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
-      # Use the output from the `hello` step
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          package_json_path: >-
+            [{
+              "package": "web",
+              "path": "package.json"
+            }]
       - name: Get the output time
         run: echo "The time was ${{ steps.hello.outputs.time }}"
