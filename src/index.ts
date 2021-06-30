@@ -44,8 +44,11 @@ async function main(): Promise<void> {
   const githubApiClient = githubApi(owner, repo, branch);
   const branchData = await githubApiClient.getBranch();
 
-  // if(!branchData.protected) return; //TODO: need to enable thi
   console.log('branch data', branchData);
+  if(!branchData.protected) {
+    console.log('branch is not protected. Skipping this workflow.')
+    return;
+  }
 
   const payloadStr = JSON.stringify(payload, undefined, 2);
   console.log('payload', payloadStr);

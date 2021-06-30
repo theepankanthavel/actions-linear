@@ -6335,8 +6335,11 @@ function main() {
                     return [4 /*yield*/, githubApiClient.getBranch()];
                 case 1:
                     branchData = _d.sent();
-                    // if(!branchData.protected) return; //TODO: need to enable thi
                     console.log('branch data', branchData);
+                    if (!branchData.protected) {
+                        console.log('branch is not protected. Skipping this workflow.');
+                        return [2 /*return*/];
+                    }
                     payloadStr = JSON.stringify(payload, undefined, 2);
                     console.log('payload', payloadStr);
                     issueIdsForBranchLabel = new Set();
