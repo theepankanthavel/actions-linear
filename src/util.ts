@@ -15,12 +15,9 @@ export function parseIssueIds(commits: {message: string}[]): IssueIds {
   const pattern = /^\s*ref:\s?(.+)$/gmi;
 
   commits.forEach(({message}) => {
-    console.log(message)
     const matches = pattern.exec(message);
-    console.log('match', matches);
     if(!matches) return;
     const ids = matches[1].split(',').map(v => v.trim());
-    console.log(ids)
     if(ids.includes(NO_ACTION)) return;
     const featureComplete = ids.includes(FEATURE_COMPLETE);
     ids.forEach(id => {

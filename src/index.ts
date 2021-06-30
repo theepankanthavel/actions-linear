@@ -6,7 +6,7 @@ import githubApi from "./modules/github";
 import {parseIssueIds} from "./util";
 
 /**
- * Main function to run the modules action
+ * Main function to run the github action
  * @return Promise<void>
  */
 async function main(): Promise<void> {
@@ -19,31 +19,13 @@ async function main(): Promise<void> {
   const githubApiClient = githubApi(owner, repo, branch);
   const branchData = await githubApiClient.getBranch();
 
-  console.log('branch data', branchData);
   if(!branchData.protected) {
     console.log('branch is not protected. Skipping this workflow.')
     return;
   }
 
-  const payloadStr = JSON.stringify(payload, undefined, 2);
-  console.log('payload', payloadStr);
-
-
   const issueIds = parseIssueIds(payload.commits);
   console.log('issue ids', issueIds);
-  // const issueIdsForVersionLabel = new Set();
-
-  // payload.commits.forEach((commit: any) => {
-  //   const parseIssues = parseIssueIds(commit.message);
-  //   console.log('parsed ids',  parseIssues);
-  //   if(parseIssues.noAction) return;
-  //   parseIssues.ids.forEach(issueId => {
-  //     issueIds.add(issueId);
-  //     if(parseIssues.featureComplete) {
-  //       issueIdsForVersionLabel.add(issueId);
-  //     }
-  //   });
-  // });
 
   const packageJsonContent = await githubApiClient.getFileContent('package.json');
   const packageJson = JSON.parse(packageJsonContent);
@@ -54,16 +36,6 @@ async function main(): Promise<void> {
     }
     return insertLabelToIssue(issueId, labels)
   });
-
-  // if(issueIdsForVersionLabel.size > 0) {
-  //   const packageJsonContent = await githubApiClient.getFileContent('package.json');
-  //   const packageJson = JSON.parse(packageJsonContent);
-  //   Array.from(issueIdsForVersionLabel).forEach((issueId: string) =>
-  //     tasks.push(insertLabelToIssue(issueId, {
-  //       name: `version-${packageJson.version}`
-  //     })
-  //   ));
-  // }
 
   const result = await Promise.allSettled(tasks);
   console.log(result);
