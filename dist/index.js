@@ -6612,9 +6612,9 @@ var FEATURE_COMPLETE = 'FEATURE_COMPLETE';
  */
 function parseIssueIds(commits) {
     var collection = {};
-    var pattern = /^\s*ref:\s?(.+)$/gmi;
     commits.forEach(function (_a) {
         var message = _a.message;
+        var pattern = /^\s*ref:\s?(.+)$/gmi;
         var matches = pattern.exec(message);
         if (!matches)
             return;
@@ -6622,7 +6622,8 @@ function parseIssueIds(commits) {
         if (ids.includes(NO_ACTION))
             return;
         var featureComplete = ids.includes(FEATURE_COMPLETE);
-        ids.forEach(function (id) {
+        ids.filter(function (id) { return [NO_ACTION, FEATURE_COMPLETE].includes(id) === false; })
+            .forEach(function (id) {
             var _a;
             collection[id] = Object.assign(collection[id] || {}, {
                 featureComplete: ((_a = collection[id]) === null || _a === void 0 ? void 0 : _a.featureComplete) || featureComplete
