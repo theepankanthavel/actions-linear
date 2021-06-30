@@ -25,17 +25,9 @@ export async function insertLabelToIssue(issueId: string, labels?: string[]): Pr
     }
   }));
 
-  // let issueLabelId: string;
-  // try {
-  //   const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
-  //   issueLabelId = (await createIssueLabel.issueLabel).id;
-  // } catch(err) {
-  //   issueLabelId = await getIssueLabelId(team.id, labelInput.name);
-  // }
   await issue.update({ labelIds: existingLabels.map(l => l?.id).concat(newLabelIds) });
   console.log(`label ${labels.join(', ')} added to ${issueId}`);
 }
-
 
 /**
  * Get issue label id by name and team id

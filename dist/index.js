@@ -6291,12 +6291,12 @@ var linear_1 = __nccwpck_require__(1895);
 var github_1 = __nccwpck_require__(4973);
 var util_1 = __nccwpck_require__(744);
 /**
- * Main function to run the modules action
+ * Main function to run the github action
  * @return Promise<void>
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, payloadStr, issueIds, packageJsonContent, packageJson, tasks, result;
+        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, issueIds, packageJsonContent, packageJson, tasks, result;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -6309,13 +6309,10 @@ function main() {
                     return [4 /*yield*/, githubApiClient.getBranch()];
                 case 1:
                     branchData = _d.sent();
-                    console.log('branch data', branchData);
                     if (!branchData.protected) {
                         console.log('branch is not protected. Skipping this workflow.');
                         return [2 /*return*/];
                     }
-                    payloadStr = JSON.stringify(payload, undefined, 2);
-                    console.log('payload', payloadStr);
                     issueIds = util_1.parseIssueIds(payload.commits);
                     console.log('issue ids', issueIds);
                     return [4 /*yield*/, githubApiClient.getFileContent('package.json')];
@@ -6547,22 +6544,8 @@ function insertLabelToIssue(issueId, labels) {
                         }); }))];
                 case 4:
                     newLabelIds = _e.sent();
-                    // let issueLabelId: string;
-                    // try {
-                    //   const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
-                    //   issueLabelId = (await createIssueLabel.issueLabel).id;
-                    // } catch(err) {
-                    //   issueLabelId = await getIssueLabelId(team.id, labelInput.name);
-                    // }
                     return [4 /*yield*/, issue.update({ labelIds: existingLabels.map(function (l) { return l === null || l === void 0 ? void 0 : l.id; }).concat(newLabelIds) })];
                 case 5:
-                    // let issueLabelId: string;
-                    // try {
-                    //   const createIssueLabel = await linear.issueLabelCreate({name: labelInput.name, teamId: team.id});
-                    //   issueLabelId = (await createIssueLabel.issueLabel).id;
-                    // } catch(err) {
-                    //   issueLabelId = await getIssueLabelId(team.id, labelInput.name);
-                    // }
                     _e.sent();
                     console.log("label " + labels.join(', ') + " added to " + issueId);
                     return [2 /*return*/];
@@ -6631,13 +6614,10 @@ function parseIssueIds(commits) {
     var pattern = /^\s*ref:\s?(.+)$/gmi;
     commits.forEach(function (_a) {
         var message = _a.message;
-        console.log(message);
         var matches = pattern.exec(message);
-        console.log('match', matches);
         if (!matches)
             return;
         var ids = matches[1].split(',').map(function (v) { return v.trim(); });
-        console.log(ids);
         if (ids.includes(NO_ACTION))
             return;
         var featureComplete = ids.includes(FEATURE_COMPLETE);
