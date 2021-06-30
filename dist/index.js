@@ -6313,6 +6313,7 @@ function main() {
                         console.log('branch is not protected. Skipping this workflow.');
                         return [2 /*return*/];
                     }
+                    payload.commits.forEach(function (c) { return console.log(c.message); });
                     issueIds = util_1.parseIssueIds(payload.commits);
                     console.log('issue ids', issueIds);
                     return [4 /*yield*/, githubApiClient.getFileContent('package.json')];

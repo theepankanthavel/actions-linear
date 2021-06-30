@@ -24,6 +24,7 @@ async function main(): Promise<void> {
     return;
   }
 
+  payload.commits.forEach((c: any) => console.log(c.message));
   const issueIds = parseIssueIds(payload.commits);
   console.log('issue ids', issueIds);
 
