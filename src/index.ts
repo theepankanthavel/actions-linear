@@ -28,12 +28,13 @@ async function main(): Promise<void> {
   const issueIds = parseIssueIds(payload.commits);
   console.log('issue ids', issueIds);
 
-  const packageJsonContent = await githubApiClient.getFileContent('package.json');
-  const packageJson = JSON.parse(packageJsonContent);
+  const versionFile = await githubApiClient.getFileContent('config.json');
+  const packageJson = JSON.parse(versionFile);
   const tasks: Promise<void>[] = Object.keys(issueIds).map((issueId: string) => {
     const labels = [`deployed-in-${branch}`];
     if(issueIds[issueId].featureComplete) {
-      labels.push(`version-${packageJson.version}`);
+      console.log('version ---', `version-${packageJson['env:default']['laneVersion']}`);
+      labels.push(`version-${packageJson['env:default']['laneVersion']}`);
     }
     return insertLabelToIssue(issueId, labels)
   });

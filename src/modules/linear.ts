@@ -25,8 +25,8 @@ export async function insertLabelToIssue(issueId: string, labels?: string[]): Pr
     }
   }));
 
-  const labelIds = new Set(existingLabels.map(l => l.id).concat(newLabelIds));
-  await issue.update({labelIds: Array.from(labelIds)});
+  // const labelIds = new Set(existingLabels.map(l => l.id).concat(newLabelIds));
+  // await issue.update({labelIds: Array.from(labelIds)});
 
   console.log(`label ${labels.join(', ')} added to ${issueId}`);
 }
