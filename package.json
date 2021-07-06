@@ -7,7 +7,7 @@
     "test": "jest",
     "build": "npm test && tsc && npm run bundle",
     "tsc": "tsc",
-    "bundle": "ncc build temp/index.js --license licenses.txt",
+    "bundle": "ncc build temp/index.js --out .dist --license licenses.txt",
     "x": "ts-node test.ts",
     "prepare": "husky install"
   },
