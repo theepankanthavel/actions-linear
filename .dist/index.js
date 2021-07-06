@@ -6504,7 +6504,7 @@ var config_1 = __nccwpck_require__(379);
  */
 function insertLabelToIssue(issueId, labels) {
     return __awaiter(this, void 0, void 0, function () {
-        var linear, issue, _a, team, existingLabels, _b, _c, _d, newLabelIds;
+        var linear, issue, _a, team, existingLabels, _b, _c, _d, newLabelIds, labelIds;
         var _this = this;
         return __generator(this, function (_e) {
             switch (_e.label) {
@@ -6544,8 +6544,10 @@ function insertLabelToIssue(issueId, labels) {
                         }); }))];
                 case 4:
                     newLabelIds = _e.sent();
-                    // const labelIds = new Set(existingLabels.map(l => l.id).concat(newLabelIds));
-                    // await issue.update({labelIds: Array.from(labelIds)});
+                    labelIds = new Set(existingLabels.map(function (l) { return l.id; }).concat(newLabelIds));
+                    return [4 /*yield*/, issue.update({ labelIds: Array.from(labelIds) })];
+                case 5:
+                    _e.sent();
                     console.log("label " + labels.join(', ') + " added to " + issueId);
                     return [2 /*return*/];
             }
