@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && npm run bundle",
+    "test": "jest",
+    "build": "npm test && tsc && npm run bundle",
     "tsc": "tsc",
     "bundle": "ncc build temp/index.js --license licenses.txt",
     "x": "ts-node test.ts",
@@ -30,11 +30,14 @@
     "@octokit/rest": "^18.6.3"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.28.6",
-    "ts-node": "^10.0.0",
-    "typescript": "^4.3.4",
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
-    "husky": "^6.0.0"
+    "@types/jest": "^26.0.23",
+    "@vercel/ncc": "^0.28.6",
+    "husky": "^6.0.0",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.3",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.5"
   }
 }

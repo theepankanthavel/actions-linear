@@ -6224,14 +6224,12 @@ exports.__esModule = true;
 var core = __nccwpck_require__(2186);
 var config = {
     accessToken: '',
-    githubToken: '',
-    packageJsonFiles: []
+    githubToken: ''
 };
 try {
     config = {
         accessToken: core.getInput('linear_access_token'),
-        githubToken: core.getInput('GITHUB_TOKEN'),
-        packageJsonFiles: JSON.parse(core.getInput('package_json_path'))
+        githubToken: core.getInput('GITHUB_TOKEN')
     };
 }
 catch (err) {
@@ -6296,7 +6294,7 @@ var util_1 = __nccwpck_require__(744);
  */
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, issueIds, packageJsonContent, packageJson, tasks, result;
+        var _a, payload, eventName, _b, owner, repo, _c, branch, githubApiClient, branchData, issueIds, versionFile, packageJson, tasks, result;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -6316,14 +6314,15 @@ function main() {
                     payload.commits.forEach(function (c) { return console.log(c.message); });
                     issueIds = util_1.parseIssueIds(payload.commits);
                     console.log('issue ids', issueIds);
-                    return [4 /*yield*/, githubApiClient.getFileContent('package.json')];
+                    return [4 /*yield*/, githubApiClient.getFileContent('config.json')];
                 case 2:
-                    packageJsonContent = _d.sent();
-                    packageJson = JSON.parse(packageJsonContent);
+                    versionFile = _d.sent();
+                    packageJson = JSON.parse(versionFile);
                     tasks = Object.keys(issueIds).map(function (issueId) {
                         var labels = ["deployed-in-" + branch];
                         if (issueIds[issueId].featureComplete) {
-                            labels.push("version-" + packageJson.version);
+                            console.log('version ---', "version-" + packageJson['env:default']['laneVersion']);
+                            labels.push("version-" + packageJson['env:default']['laneVersion']);
                         }
                         return linear_1.insertLabelToIssue(issueId, labels);
                     });
@@ -6505,7 +6504,7 @@ var config_1 = __nccwpck_require__(379);
  */
 function insertLabelToIssue(issueId, labels) {
     return __awaiter(this, void 0, void 0, function () {
-        var linear, issue, _a, team, existingLabels, _b, _c, _d, newLabelIds, labelIds;
+        var linear, issue, _a, team, existingLabels, _b, _c, _d, newLabelIds;
         var _this = this;
         return __generator(this, function (_e) {
             switch (_e.label) {
@@ -6545,10 +6544,8 @@ function insertLabelToIssue(issueId, labels) {
                         }); }))];
                 case 4:
                     newLabelIds = _e.sent();
-                    labelIds = new Set(existingLabels.map(function (l) { return l.id; }).concat(newLabelIds));
-                    return [4 /*yield*/, issue.update({ labelIds: Array.from(labelIds) })];
-                case 5:
-                    _e.sent();
+                    // const labelIds = new Set(existingLabels.map(l => l.id).concat(newLabelIds));
+                    // await issue.update({labelIds: Array.from(labelIds)});
                     console.log("label " + labels.join(', ') + " added to " + issueId);
                     return [2 /*return*/];
             }

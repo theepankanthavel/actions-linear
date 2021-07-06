@@ -9,10 +9,6 @@ inputs:
     description: 'Github api token'
     required: true
     default: ''
-  package_json_path:
-    description: 'List of package.json file path'
-    required: true
-    default: >-
 outputs:
   time:
     description: 'Name output'
