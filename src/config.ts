@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 
 type Config = {
-  accessToken: string
-  githubToken: string
-}
+  accessToken: string;
+  githubToken: string;
+};
 
 let config: Config = {
   accessToken: '',
@@ -12,11 +12,12 @@ let config: Config = {
 
 try {
   config = {
-    accessToken: core.getInput('linear_access_token'),
+    accessToken: core.getInput('LINEAR_API_KEY'),
+
     githubToken: core.getInput('GITHUB_TOKEN'),
   };
-} catch(err) {
-  core.setFailed('Invalid inputs ' + err.message);
+} catch (err) {
+  core.setFailed(`Invalid inputs ${err.message}`);
   process.exit();
 }
 

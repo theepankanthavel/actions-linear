@@ -1,20 +1,13 @@
-
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "noImplicitAny": true,
-        "sourceMap": true,
-<<<<<<< HEAD
-        "outDir": "temp",
-        "lib": ["es2020"]
-=======
-        "outDir": "temp"
->>>>>>> 71129cd (typescript version)
-    },
-    "include": [
-        "src"
-    ],
-    "exclude": [
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "outDir": "temp",
+    "lib": ["es2020"],
+    "types": ["node", "jest"],
+    "esModuleInterop": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }
