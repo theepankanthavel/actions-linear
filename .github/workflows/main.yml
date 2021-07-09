@@ -11,5 +11,5 @@ jobs:
         id: labels
         uses: ./
         with:
-          linear_access_token: ${{ secrets.LINEAR_ACCESS_TOKEN }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
