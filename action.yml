@@ -9,6 +9,10 @@ inputs:
     description: 'Github api token'
     required: true
     default: ''
+  BRANCH_NAMES:
+    description: 'Rename branch names to different names'
+    required: false
+    default: >-
 runs:
   using: 'node12'
   main: '.dist/index.js'

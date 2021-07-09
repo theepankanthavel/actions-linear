@@ -6,6 +6,7 @@ import PromisePool from '@supercharge/promise-pool';
 import githubApi from './modules/github';
 import { insertLabelToIssue } from './modules/linear';
 import { parseIssueIds } from './util';
+import config from './config';
 
 /**
  * Main function to run the github action
@@ -47,7 +48,8 @@ async function main(): Promise<void> {
   const taskInput: { issueId: string; labels: string[] }[] = Object.keys(
     issueIds
   ).map((issueId: string) => {
-    const labels = [`live-in-${branch}`];
+    const branchName = (config.branchNames[branch] && config.branchNames[branch].length) ? config.branchNames[branch] : branch;
+    const labels = [`live-in-${branchName}`];
     if (issueIds[issueId].featureComplete) {
       labels.push(`version-${packageJson['env:default'].laneVersion}`);
     }

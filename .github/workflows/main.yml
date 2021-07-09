@@ -13,3 +13,8 @@ jobs:
         with:
           LINEAR_API_KEY: ${{ secrets.LINEAR_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAMES: ->
+          {
+            "main": "prod"
+            "develop": ""
+          }
