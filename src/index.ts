@@ -34,9 +34,15 @@ async function main(): Promise<void> {
   const issueIds = parseIssueIds(payload.commits);
   console.log('issue ids', issueIds);
 
-  const versionFile = await githubApiClient.getFileContent(
-    'config.json'
-  );
+  let versionFile = '';
+  try {
+    versionFile = await githubApiClient.getFileContent(
+      'config.json'
+    );
+  } catch(err) {
+    console.log('err in version file', err);
+  }
+  console.log('versionFile --', versionFile);
   const packageJson = JSON.parse(versionFile);
   const taskInput: { issueId: string; labels: string[] }[] = Object.keys(
     issueIds
@@ -51,6 +57,7 @@ async function main(): Promise<void> {
   const { errors } = await PromisePool.for(taskInput).process(
     async ({ issueId, labels }) => await insertLabelToIssue(issueId, labels)
   );
+  console.log('errors', errors);
   errors.forEach(taskError => console.log(taskError.message));
 }
 
