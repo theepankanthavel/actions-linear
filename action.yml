@@ -1,7 +1,7 @@
 name: 'Linear'
 description: 'Integration with Linear app'
 inputs:
-  linear_access_token:
+  LINEAR_API_KEY:
     description: 'developers.linear.app api access token'
     required: true
     default: ''
@@ -9,9 +9,6 @@ inputs:
     description: 'Github api token'
     required: true
     default: ''
-outputs:
-  time:
-    description: 'Name output'
 runs:
   using: 'node12'
   main: '.dist/index.js'
